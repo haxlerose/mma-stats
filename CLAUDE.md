@@ -107,9 +107,9 @@ bin/kamal deploy            # Deploy using Kamal
 ## Important Notes
 
 - **ALWAYS USE TDD AS EXPLAINED EARLIER**
+- **Do not mention "Claude" at all in commit messages**
 - This is an API-only application - no views or assets pipeline
 - Use JSON serialization for all API responses
 - Consider implementing API versioning from the start (v1, v2, etc.)
 - Solid Queue is used for background jobs
 - Multi-database production setup requires careful migration targeting
-- Do not mention "Claude" at all in commit messages
