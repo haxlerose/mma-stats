@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "csv"
-require "faraday"
-
 class EventImporter
   CSV_URL = "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/refs/heads/main/ufc_event_details.csv"
 
