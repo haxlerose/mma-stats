@@ -10,6 +10,9 @@ class FightImporter
     csv_data = parse_csv_data
     results = { imported: [], failed: [] }
 
+    # Preload all events to avoid N+1 queries
+    preload_events
+
     csv_data.each do |row|
       import_fight_row(row, results)
     end
@@ -19,6 +22,10 @@ class FightImporter
   end
 
   private
+
+  def preload_events
+    @events_cache = Event.all.index_by(&:name)
+  end
 
   def parse_csv_data
     response = fetch_csv_data
@@ -33,7 +40,7 @@ class FightImporter
 
   def import_fight_row(row, results)
     event_name = row["EVENT"]&.strip
-    event = Event.find_by(name: event_name)
+    event = @events_cache[event_name]
 
     unless event
       results[:failed] << {

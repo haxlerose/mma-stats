@@ -10,6 +10,9 @@ class FightStatImporter
     csv_data = parse_csv_data
     results = { imported: [], failed: [] }
 
+    # Preload all data to avoid N+1 queries
+    preload_data
+
     csv_data.each do |row|
       import_fight_stat_row(row, results)
     end
@@ -19,6 +22,13 @@ class FightStatImporter
   end
 
   private
+
+  def preload_data
+    @events_cache = Event.includes(fights: :event).index_by(&:name)
+    @fighters_cache = Fighter.all.index_by(&:name)
+    @fights_cache = Fight.includes(:event).group_by(&:event_id)
+                         .transform_values { |fights| fights.index_by(&:bout) }
+  end
 
   def parse_csv_data
     response = fetch_csv_data
@@ -107,7 +117,7 @@ class FightStatImporter
 
   def find_event(row, results)
     event_name = row["EVENT"]&.strip
-    event = Event.find_by(name: event_name)
+    event = @events_cache[event_name]
 
     unless event
       results[:failed] << {
@@ -121,7 +131,7 @@ class FightStatImporter
 
   def find_fight(event, row, results)
     bout = normalize_whitespace(row["BOUT"])
-    fight = event.fights.find_by(bout: bout)
+    fight = @fights_cache.dig(event.id, bout)
 
     unless fight
       results[:failed] << {
@@ -135,7 +145,7 @@ class FightStatImporter
 
   def find_fighter(row, results)
     fighter_name = normalize_whitespace(row["FIGHTER"])
-    fighter = Fighter.find_by(name: fighter_name)
+    fighter = @fighters_cache[fighter_name]
 
     unless fighter
       results[:failed] << {
