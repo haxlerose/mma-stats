@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "csv"
-require "faraday"
-
 class FightStatImporter
   CSV_URL = "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/" \
             "refs/heads/main/ufc_fight_stats.csv"
