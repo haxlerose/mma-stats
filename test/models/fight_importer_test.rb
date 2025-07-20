@@ -157,4 +157,25 @@ class FightImporterTest < ActiveSupport::TestCase
     assert_equal 1, @event2.fights.count
     assert_equal 1, @event3.fights.count
   end
+
+  test "import normalizes bout names with multiple spaces" do
+    # Create CSV with bout names that have multiple spaces
+    csv_with_multiple_spaces = <<~CSV
+      EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME,TIME FORMAT,REFEREE,DETAILS,URL
+      UFC 315: Muhammad vs. Della Maddalena,"Test  Fighter   1    vs.     Test  Fighter 2","Test Fighter 1 def. Test Fighter 2",Welterweight,Decision,3,5:00,3 Rnd (5-5-5),John Doe,"Test details",http://example.com/1
+    CSV
+
+    stub_request(:get, FightImporter::CSV_URL)
+      .to_return(status: 200, body: csv_with_multiple_spaces, headers: {})
+
+    importer = FightImporter.new
+    Fight.destroy_all
+
+    result = importer.import
+
+    # Should normalize bout name when creating fight
+    assert_equal 1, result.count
+    fight = result.first
+    assert_equal "Test Fighter 1 vs. Test Fighter 2", fight.bout
+  end
 end

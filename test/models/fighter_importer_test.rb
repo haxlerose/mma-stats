@@ -134,4 +134,25 @@ class FighterImporterTest < ActiveSupport::TestCase
       importer.import
     end
   end
+
+  test "import normalizes fighter names with multiple spaces" do
+    # Create CSV with fighter names that have multiple spaces
+    csv_with_multiple_spaces = <<~CSV
+      FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB,URL
+      Test   Fighter    One,"5' 10""",170,"72""",Orthodox,Jan 15 1990,http://example.com
+    CSV
+
+    stub_request(:get, FighterImporter::CSV_URL)
+      .to_return(status: 200, body: csv_with_multiple_spaces, headers: {})
+
+    importer = FighterImporter.new
+    Fighter.destroy_all
+
+    result = importer.import
+
+    # Should normalize fighter name when creating fighter
+    assert_equal 1, result.count
+    fighter = result.first
+    assert_equal "Test Fighter One", fighter.name
+  end
 end

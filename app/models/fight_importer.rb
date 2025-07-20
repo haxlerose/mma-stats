@@ -48,7 +48,7 @@ class FightImporter
 
     fight = Fight.find_or_initialize_by(
       event: event,
-      bout: row["BOUT"],
+      bout: normalize_whitespace(row["BOUT"]),
       outcome: row["OUTCOME"]
     )
 
@@ -81,6 +81,12 @@ class FightImporter
 
   def parse_round(round_string)
     round_string.to_i if round_string.present?
+  end
+
+  def normalize_whitespace(string)
+    return nil if string.blank?
+
+    string.strip.gsub(/\s+/, " ")
   end
 
   def log_failed_imports(failed_imports)

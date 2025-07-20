@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_20_201617) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_20_212849) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,6 +21,38 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_20_201617) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["name"], name: "index_events_on_name", unique: true
+  end
+
+  create_table "fight_stats", force: :cascade do |t|
+    t.bigint "fight_id", null: false
+    t.bigint "fighter_id", null: false
+    t.integer "round"
+    t.integer "knockdowns"
+    t.integer "significant_strikes"
+    t.integer "significant_strikes_attempted"
+    t.integer "total_strikes"
+    t.integer "total_strikes_attempted"
+    t.integer "takedowns"
+    t.integer "takedowns_attempted"
+    t.integer "submission_attempts"
+    t.integer "reversals"
+    t.integer "control_time_seconds"
+    t.integer "head_strikes"
+    t.integer "head_strikes_attempted"
+    t.integer "body_strikes"
+    t.integer "body_strikes_attempted"
+    t.integer "leg_strikes"
+    t.integer "leg_strikes_attempted"
+    t.integer "distance_strikes"
+    t.integer "distance_strikes_attempted"
+    t.integer "clinch_strikes"
+    t.integer "clinch_strikes_attempted"
+    t.integer "ground_strikes"
+    t.integer "ground_strikes_attempted"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["fight_id"], name: "index_fight_stats_on_fight_id"
+    t.index ["fighter_id"], name: "index_fight_stats_on_fighter_id"
   end
 
   create_table "fighters", force: :cascade do |t|
@@ -48,5 +80,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_20_201617) do
     t.index ["event_id"], name: "index_fights_on_event_id"
   end
 
+  add_foreign_key "fight_stats", "fighters"
+  add_foreign_key "fight_stats", "fights"
   add_foreign_key "fights", "events"
 end

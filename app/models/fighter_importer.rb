@@ -32,7 +32,7 @@ class FighterImporter
   end
 
   def import_fighter_row(row, results)
-    fighter_name = row["FIGHTER"]&.strip
+    fighter_name = normalize_whitespace(row["FIGHTER"])
     fighter = Fighter.find_or_initialize_by(name: fighter_name)
 
     if fighter.persisted?
@@ -77,6 +77,12 @@ class FighterImporter
     Date.parse(date_string)
   rescue ArgumentError, TypeError
     nil
+  end
+
+  def normalize_whitespace(string)
+    return nil if string.blank?
+
+    string.strip.gsub(/\s+/, " ")
   end
 
   def log_failed_imports(failed_imports)
