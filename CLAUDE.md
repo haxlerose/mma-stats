@@ -11,7 +11,6 @@ This is a Ruby on Rails 8.0.2 API-only application for MMA (Mixed Martial Arts) 
 - PostgreSQL database
 - Faraday for external HTTP requests
 - Solid Queue/Cache/Cable (Rails 8 native adapters)
-- Docker + Kamal for deployment
 
 ## Essential Commands
 
@@ -92,3 +91,4 @@ bin/kamal deploy            # Deploy using Kamal
 - Consider implementing API versioning from the start (v1, v2, etc.)
 - Solid Queue is used for background jobs
 - Multi-database production setup requires careful migration targeting
+- Do not mention "Claude" at all in commit messages
