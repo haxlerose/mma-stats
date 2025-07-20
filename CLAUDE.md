@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a Ruby on Rails 8.0.2 API-only application for MMA (Mixed Martial Arts) statistics tracking and analysis. The application imports UFC event data and will expand to include fighter statistics, fight results, and predictions.
+This is a Ruby on Rails 8.0.2 API-only application for MMA (Mixed Martial Arts) statistics data collection and storage. The application imports comprehensive UFC data including events, fighters, fights, and detailed fight statistics from external CSV sources.
 
 **Technology Stack:**
 - Ruby 3.4.5 with Rails 8.0.2 (API-only mode)
@@ -54,6 +54,9 @@ bin/kamal deploy            # Deploy using Kamal
 
 **Current Tables:**
 - `events` - UFC event data (name, date, location) with unique index on name
+- `fighters` - Fighter profiles (name, height, reach, birth_date)
+- `fights` - Individual fights within events (bout, outcome, weight_class, method, etc.)
+- `fight_stats` - Detailed round-by-round statistics per fighter per fight
 
 ### Code Organization Patterns
 - **Controllers**: Place API endpoints in `app/controllers/api/v1/`
@@ -95,20 +98,42 @@ bin/kamal deploy            # Deploy using Kamal
 **Event**
 - Represents a UFC event
 - Attributes: name (unique), date, location
+- Associations: has_many :fights
 - Imported via EventImporter from CSV data
-- Validates presence of all attributes
 
-**EventImporter**
-- Fetches UFC event data from external CSV
-- Handles duplicates with find_or_initialize_by
-- Includes error handling and logging
-- Returns array of successfully imported Event records
+**Fighter** 
+- Represents individual MMA fighters
+- Attributes: name, height_in_inches, reach_in_inches, birth_date
+- Associations: has_many :fight_stats
+- Imported via FighterImporter with physical stats parsing
+
+**Fight**
+- Represents individual fights within events
+- Attributes: bout, outcome, weight_class, method, round, time, referee, details
+- Associations: belongs_to :event, has_many :fight_stats
+- Imported via FightImporter with event lookup caching
+
+**FightStat**
+- Detailed round-by-round fighting statistics
+- Comprehensive striking/grappling metrics per fighter per round
+- Associations: belongs_to :fight, belongs_to :fighter
+- Imported via FightStatImporter with triple-cache optimization
+
+### Data Import System
+All importers follow consistent patterns:
+- CSV data fetching from GitHub repository
+- Error handling with detailed logging
+- Performance optimization with caching strategies
+- Graceful duplicate handling with find_or_initialize_by
+
+**Import Dependencies:** Events → Fighters (independent) → Fights → Fight Stats
 
 ## Important Notes
 
 - **IMPORTANT! YOU MUST ALWAYS USE TDD AS EXPLAINED EARLIER**
 - **YOU MUST NOT mention "Claude" at all in commit messages**
 - This is an API-only application - no views or assets pipeline
+- Currently focused on data collection and storage, not prediction modeling
 - Use JSON serialization for all API responses
 - Consider implementing API versioning from the start (v1, v2, etc.)
 - Solid Queue is used for background jobs

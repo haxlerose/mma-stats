@@ -1,10 +1,10 @@
 # MMA Stats API
 
-A Ruby on Rails API application for tracking and analyzing Mixed Martial Arts (MMA) statistics, with a focus on UFC event data.
+A Ruby on Rails API application for collecting and storing comprehensive Mixed Martial Arts (MMA) statistics from UFC events, fights, and fighters.
 
 ## Overview
 
-This API-only Rails application imports and manages UFC event data, with plans to expand to fighter statistics, fight results, and predictive analytics.
+This API-only Rails application imports and stores comprehensive UFC data including events, fighters, individual fights, and detailed round-by-round fight statistics from external CSV sources.
 
 ## Requirements
 
@@ -70,24 +70,59 @@ bin/brakeman           # Security analysis
 ### Event
 - **Attributes**: name (unique), date, location
 - **Purpose**: Represents UFC events
-- **Data Source**: Imported from external CSV via EventImporter
+- **Associations**: has_many :fights
+
+### Fighter
+- **Attributes**: name, height_in_inches, reach_in_inches, birth_date
+- **Purpose**: Represents individual MMA fighters
+- **Associations**: has_many :fight_stats
+
+### Fight
+- **Attributes**: bout, outcome, weight_class, method, round, time, referee, details
+- **Purpose**: Individual fights within UFC events
+- **Associations**: belongs_to :event, has_many :fight_stats
+
+### FightStat
+- **Attributes**: Comprehensive striking and grappling statistics per round
+- **Purpose**: Detailed round-by-round performance metrics
+- **Associations**: belongs_to :fight, belongs_to :fighter
 
 ## Data Import
 
+The application includes 4 specialized importer classes that follow consistent patterns:
+
 ### EventImporter
-
-Import UFC event data:
-
 ```ruby
 importer = EventImporter.new
 events = importer.import
 ```
 
-The importer:
-- Fetches data from UFC events CSV
-- Handles duplicates gracefully
-- Logs any import failures
-- Returns successfully imported Event records
+### FighterImporter
+```ruby
+importer = FighterImporter.new
+fighters = importer.import
+```
+
+### FightImporter
+```ruby
+importer = FightImporter.new
+fights = importer.import
+```
+
+### FightStatImporter
+```ruby
+importer = FightStatImporter.new
+stats = importer.import
+```
+
+**Import Features:**
+- Fetches data from external UFC statistics CSV files
+- Handles duplicates gracefully with find_or_initialize_by
+- Performance optimization with caching strategies
+- Comprehensive error handling and logging
+- Returns arrays of successfully imported records
+
+**Import Dependencies:** Events → Fighters (independent) → Fights → Fight Stats
 
 ## API Endpoints
 
