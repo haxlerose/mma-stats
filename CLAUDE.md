@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a Ruby on Rails 8.0.2 API-only application for MMA (Mixed Martial Arts) statistics tracking and analysis. The project is in early development stages with infrastructure set up but no domain models implemented yet.
+This is a Ruby on Rails 8.0.2 API-only application for MMA (Mixed Martial Arts) statistics tracking and analysis. The application imports UFC event data and will expand to include fighter statistics, fight results, and predictions.
 
 **Technology Stack:**
 - Ruby 3.4.5 with Rails 8.0.2 (API-only mode)
 - PostgreSQL database
 - Faraday for external HTTP requests
+- VCR for recording/replaying HTTP interactions in tests
 - Solid Queue/Cache/Cable (Rails 8 native adapters)
 
 ## Essential Commands
@@ -51,10 +52,14 @@ bin/kamal deploy            # Deploy using Kamal
 ### Database Structure
 **Development:** Single PostgreSQL database `mma_stats_development`
 
+**Current Tables:**
+- `events` - UFC event data (name, date, location) with unique index on name
+
 ### Code Organization Patterns
 - **Controllers**: Place API endpoints in `app/controllers/api/v1/`
 - **Jobs**: Background processing in `app/jobs/` for data syncing
 - **Models**: All business logic using namespacing for organization
+- **Importers**: Data import classes (e.g., EventImporter) for external data sources
 
 ## Development Standards
 
@@ -82,6 +87,22 @@ bin/kamal deploy            # Deploy using Kamal
 
 ### External Data Integration
 - Faraday gem available for HTTP requests
+- VCR for recording HTTP interactions in test environment
+- UFC event data source: https://github.com/Greco1899/scrape_ufc_stats
+
+### Current Domain Models
+
+**Event**
+- Represents a UFC event
+- Attributes: name (unique), date, location
+- Imported via EventImporter from CSV data
+- Validates presence of all attributes
+
+**EventImporter**
+- Fetches UFC event data from external CSV
+- Handles duplicates with find_or_initialize_by
+- Includes error handling and logging
+- Returns array of successfully imported Event records
 
 ## Important Notes
 
