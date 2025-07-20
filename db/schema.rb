@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_20_131442) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_20_201617) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -31,4 +31,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_20_131442) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
+
+  create_table "fights", force: :cascade do |t|
+    t.bigint "event_id", null: false
+    t.string "bout"
+    t.string "outcome"
+    t.string "weight_class"
+    t.string "method"
+    t.integer "round"
+    t.string "time"
+    t.string "time_format"
+    t.string "referee"
+    t.text "details"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_fights_on_event_id"
+  end
+
+  add_foreign_key "fights", "events"
 end

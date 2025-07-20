@@ -31,7 +31,8 @@ class EventImporter
   end
 
   def import_event_row(row, results)
-    event = Event.find_or_initialize_by(name: row["EVENT"])
+    event_name = row["EVENT"]&.strip
+    event = Event.find_or_initialize_by(name: event_name)
 
     if event.persisted?
       results[:imported] << event

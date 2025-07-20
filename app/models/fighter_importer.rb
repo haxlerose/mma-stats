@@ -32,7 +32,8 @@ class FighterImporter
   end
 
   def import_fighter_row(row, results)
-    fighter = Fighter.find_or_initialize_by(name: row["FIGHTER"])
+    fighter_name = row["FIGHTER"]&.strip
+    fighter = Fighter.find_or_initialize_by(name: fighter_name)
 
     if fighter.persisted?
       results[:imported] << fighter
