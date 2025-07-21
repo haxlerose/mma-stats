@@ -108,3 +108,19 @@ export interface ApiError {
 export interface FighterSearchParams {
   search?: string;
 }
+
+// Fighter Spotlight specific types
+export interface FighterSpotlight extends Fighter {
+  current_win_streak: number;
+  last_fight?: {
+    opponent: string;
+    outcome: string;
+    method: string;
+    event_name: string;
+    event_date: string;
+  };
+}
+
+export interface FighterSpotlightResponse {
+  fighters: FighterSpotlight[];
+}

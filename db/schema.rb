@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_21_123911) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_21_181839) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -54,6 +54,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_123911) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["fight_id"], name: "index_fight_stats_on_fight_id"
+    t.index ["fighter_id", "fight_id"], name: "index_fight_stats_on_fighter_id_and_fight_id"
     t.index ["fighter_id"], name: "index_fight_stats_on_fighter_id"
   end
 

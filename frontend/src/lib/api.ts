@@ -13,6 +13,8 @@ import {
   FighterResponse,
   FightResponse,
   FighterSearchParams,
+  FighterSpotlight,
+  FighterSpotlightResponse,
   ApiError,
 } from "@/types/api";
 
@@ -112,6 +114,12 @@ export const apiClient = {
      */
     get: (id: number): Promise<Fighter> =>
       apiFetch<FighterResponse>(`/fighters/${id}`).then(response => response.fighter),
+      
+    /**
+     * Get top 3 fighters with longest current win streaks (active fighters only)
+     */
+    spotlight: (): Promise<FighterSpotlight[]> =>
+      apiFetch<FighterSpotlightResponse>("/fighter_spotlight").then(response => response.fighters),
   },
 
   // Fights API

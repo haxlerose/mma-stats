@@ -11,6 +11,7 @@ Rails.application.routes.draw do
       resources :events, only: [:index, :show]
       resources :fighters, only: [:index, :show]
       resources :fights, only: [:show]
+      resources :fighter_spotlight, only: [:index]
     end
   end
 
