@@ -1,0 +1,21 @@
+{
+  "name": "mma-stats-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "npx concurrently \"npm run dev:api\" \"npm run dev:frontend\"",
+    "dev:api": "bin/rails server",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "test": "npm run test:api && npm run test:frontend",
+    "test:api": "bin/rails test",
+    "test:frontend": "cd frontend && npm test",
+    "lint": "npm run lint:api && npm run lint:frontend",
+    "lint:api": "bin/rubocop",
+    "lint:frontend": "cd frontend && npm run lint",
+    "install:frontend": "cd frontend && npm install",
+    "setup": "bundle install && npm run install:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

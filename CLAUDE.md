@@ -150,95 +150,25 @@ bin/kamal deploy            # Deploy using Kamal
 - **ALL TESTS MUST PASS** - No failing tests in the test suite
 
 ### External Data Integration
-- Faraday gem available for HTTP requests
-- VCR for recording HTTP interactions in test environment
-- UFC event data source: https://github.com/Greco1899/scrape_ufc_stats
+- **Faraday** for HTTP requests, **VCR** for test recording
 
-### Current Domain Models
+### Domain Models & Data Import
 
-**Event**
-- Represents a UFC event
-- Attributes: name (unique), date, location
-- Associations: has_many :fights
-- Imported via EventImporter from CSV data
+**Core Entities:** Event/Fighter/Fight/FightStat with comprehensive validations and associations
+**4 Importers:** CSV fetching from https://github.com/Greco1899/scrape_ufc_stats with caching optimization
+**Dependencies:** Events → Fighters (independent) → Fights → Fight Stats
 
-**Fighter**
-- Represents individual MMA fighters
-- Attributes: name, height_in_inches, reach_in_inches, birth_date
-- Associations: has_many :fight_stats
-- Imported via FighterImporter with physical stats parsing
+## API Endpoints (Read-Only)
 
-**Fight**
-- Represents individual fights within events
-- Attributes: bout, outcome, weight_class, method, round, time, referee, details
-- Associations: belongs_to :event, has_many :fight_stats
-- Imported via FightImporter with event lookup caching
+**Versioned Structure:** All endpoints under `/api/v1/`
 
-**FightStat**
-- Detailed round-by-round fighting statistics
-- Comprehensive striking/grappling metrics per fighter per round
-- Associations: belongs_to :fight, belongs_to :fighter
-- Imported via FightStatImporter with triple-cache optimization
+**Available Endpoints:**
+- `GET /api/v1/events` - List events (date ordered) + `GET /api/v1/events/:id` - Event with fights
+- `GET /api/v1/fighters` - List fighters (searchable) + `GET /api/v1/fighters/:id` - Fighter with full history
+- `GET /api/v1/fights/:id` - Complete fight details with statistics
+- `GET /up` - Health check
 
-### Data Import System
-All importers follow consistent patterns:
-- CSV data fetching from GitHub repository
-- Error handling with detailed logging
-- Performance optimization with caching strategies
-- Graceful duplicate handling with find_or_initialize_by
-
-**Import Dependencies:** Events → Fighters (independent) → Fights → Fight Stats
-
-## API Endpoints
-
-### **Versioned API Structure**
-All endpoints follow `/api/v1/` pattern for future API iterations.
-
-#### **Events API**
-- **GET `/api/v1/events`**
-  - Returns: Array of events ordered by date (descending)
-  - Data: `{ events: [{ id, name, date, location }] }`
-
-- **GET `/api/v1/events/:id`**
-  - Returns: Event details with associated fights
-  - Data: Event object with nested fights array including bout details, outcomes, methods, etc.
-
-#### **Fighters API**
-- **GET `/api/v1/fighters`**
-  - Returns: Alphabetically sorted fighters
-  - Parameters: `search` (optional) - Case-insensitive name search
-  - Data: `{ fighters: [{ id, name, height_in_inches, reach_in_inches, birth_date }] }`
-
-- **GET `/api/v1/fighters/:id`**
-  - Returns: Fighter with complete fight history and statistics
-  - Data: Fighter object with nested fights array, each including:
-    - Fight details (bout, outcome, method, round, time, referee)
-    - Event details (name, date)
-    - Round-by-round fight_stats (strikes, takedowns, control time, etc.)
-
-#### **Fights API**
-- **GET `/api/v1/fights/:id`**
-  - Returns: Complete fight details with both fighters and all statistics
-  - Data: Fight object with nested:
-    - Event details
-    - Fighters array with physical stats
-    - Fight_stats array with comprehensive round-by-round metrics
-
-#### **Health Check**
-- **GET `/up`** - Rails health check endpoint (200/500 status)
-
-### **API Features**
-- **Read-only endpoints** - Only GET operations (index, show)
-- **Custom JSON serialization** - Uses as_json with field filtering
-- **Query optimization** - Eager loading with includes to prevent N+1 queries
-- **Search functionality** - Fighter name search with ILIKE pattern matching
-- **No authentication** - Open API currently
-- **Comprehensive statistics** - Round-by-round striking/grappling metrics
-
-### **Response Format**
-- Root level resource wrapper (e.g., `{ events: [...] }`, `{ fighter: {...} }`)
-- Nested related data appropriately
-- Consistent field naming and structure across endpoints
+**Features:** Custom JSON serialization, eager loading optimization, fighter name search, comprehensive round-by-round statistics, no authentication (open API)
 
 ## Important Notes
 
