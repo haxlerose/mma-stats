@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_20_212849) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_21_123911) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   create_table "events", force: :cascade do |t|
     t.string "name"
@@ -20,6 +21,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_20_212849) do
     t.string "location"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["date"], name: "idx_events_date_desc", order: :desc
     t.index ["name"], name: "index_events_on_name", unique: true
   end
 
@@ -62,6 +64,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_20_212849) do
     t.date "birth_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index "lower((name)::text)", name: "idx_fighters_name_lower"
+    t.index ["name"], name: "idx_fighters_name"
+    t.index ["name"], name: "idx_fighters_name_gin", opclass: :gin_trgm_ops, using: :gin
   end
 
   create_table "fights", force: :cascade do |t|
