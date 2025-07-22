@@ -15,6 +15,8 @@ import {
   FighterSearchParams,
   FighterSpotlight,
   FighterSpotlightResponse,
+  StatisticalHighlight,
+  StatisticalHighlightsResponse,
   ApiError,
 } from "@/types/api";
 
@@ -129,6 +131,17 @@ export const apiClient = {
      */
     get: (id: number): Promise<Fight> =>
       apiFetch<FightResponse>(`/fights/${id}`).then(response => response.fight),
+  },
+
+  // Statistical Highlights API
+  statistics: {
+    /**
+     * Get statistical highlights for all categories
+     * Returns leaders in strikes, submissions, takedowns, and knockdowns per 15 minutes
+     */
+    highlights: (): Promise<StatisticalHighlight[]> =>
+      apiFetch<StatisticalHighlightsResponse>("/statistical_highlights")
+        .then(response => response.highlights),
   },
 
   // Health check

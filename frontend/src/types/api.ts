@@ -124,3 +124,20 @@ export interface FighterSpotlight extends Fighter {
 export interface FighterSpotlightResponse {
   fighters: FighterSpotlight[];
 }
+
+// Statistical Highlights types
+export interface StatisticalHighlight {
+  category: string;
+  fighter: {
+    id: number;
+    name: string;
+    height_in_inches: number | null;
+    reach_in_inches: number | null;
+    birth_date: string | null;
+  } | null;
+  value: number;
+}
+
+export interface StatisticalHighlightsResponse {
+  highlights: StatisticalHighlight[];
+}

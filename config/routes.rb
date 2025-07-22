@@ -12,6 +12,7 @@ Rails.application.routes.draw do
       resources :fighters, only: [:index, :show]
       resources :fights, only: [:show]
       resources :fighter_spotlight, only: [:index]
+      resources :statistical_highlights, only: [:index]
     end
   end
 

@@ -1,0 +1,21 @@
+
+> frontend@0.1.0 dev
+> next dev --port 3001
+
+ ⚠ Warning: Found multiple lockfiles. Selecting /Users/paulchesterton/projects/mma-stats/package-lock.json.
+   Consider removing the lockfiles at:
+   * /Users/paulchesterton/projects/mma-stats/frontend/package-lock.json
+
+   ▲ Next.js 15.4.2
+   - Local:        http://localhost:3001
+   - Network:      http://172.17.223.146:3001
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 963ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 525ms (551 modules)
+ GET /api/v1/statistical_highlights 404 in 659ms
+ ✓ Compiled / in 247ms (622 modules)
+ GET / 200 in 365ms
+ GET / 200 in 19ms

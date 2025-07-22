@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { apiClient } from "@/lib/api";
+import { StatisticalHighlight } from "@/types/api";
 
 interface StatHighlightProps {
   icon: string;
@@ -61,61 +63,160 @@ export function StatHighlight({
   );
 }
 
+// Helper function to format statistical values for display
+function formatStatValue(value: number, category: string): string {
+  if (value === 0) return "0";
+  
+  switch (category) {
+    case "strikes_per_15min":
+      return Math.round(value).toString();
+    case "submission_attempts_per_15min":
+    case "takedowns_per_15min":
+    case "knockdowns_per_15min":
+      return value.toFixed(1);
+    default:
+      return value.toFixed(1);
+  }
+}
+
+// Helper function to get display info for each category
+function getCategoryInfo(category: string) {
+  switch (category) {
+    case "strikes_per_15min":
+      return {
+        icon: "🎯",
+        title: "Strike Volume",
+        label: "Strikes per 15min"
+      };
+    case "submission_attempts_per_15min":
+      return {
+        icon: "🤼",
+        title: "Submission Hunter",
+        label: "Attempts per 15min"
+      };
+    case "takedowns_per_15min":
+      return {
+        icon: "🤸",
+        title: "Takedown Master",
+        label: "Takedowns per 15min"
+      };
+    case "knockdowns_per_15min":
+      return {
+        icon: "💥",
+        title: "Knockout Power",
+        label: "Knockdowns per 15min"
+      };
+    default:
+      return {
+        icon: "📊",
+        title: "Unknown",
+        label: "per 15min"
+      };
+  }
+}
+
 // Helper component for creating multiple stat highlights
 export function StatHighlights({ 
   className 
 }: { 
   className?: string 
 }) {
-  // Dummy data that looks realistic but is clearly placeholder
-  const dummyStats = [
-    {
-      icon: "🎯",
-      title: "Best Accuracy",
-      fighterName: "Israel Adesanya",
-      statValue: "67%",
-      statLabel: "Significant Strikes",
-      fighterUrl: "/fighters/1", // Will be dynamic later
-    },
-    {
-      icon: "👊",
-      title: "Most Strikes",
-      fighterName: "Max Holloway", 
-      statValue: "445",
-      statLabel: "Total Strikes Landed",
-      fighterUrl: "/fighters/2",
-    },
-    {
-      icon: "⏱️",
-      title: "Control Time",
-      fighterName: "Khabib Nurmagomedov",
-      statValue: "15:42",
-      statLabel: "Single Fight Record",
-      fighterUrl: "/fighters/3",
-    },
-    {
-      icon: "🥊",
-      title: "Takedown Rate",
-      fighterName: "Daniel Cormier",
-      statValue: "89%",
-      statLabel: "Takedown Success",
-      fighterUrl: "/fighters/4",
-    },
-  ];
+  const [highlights, setHighlights] = useState<StatisticalHighlight[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchHighlights() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await apiClient.statistics.highlights();
+        setHighlights(data);
+      } catch (err) {
+        console.error("Failed to fetch statistical highlights:", err);
+        setError("Failed to load statistical highlights");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchHighlights();
+  }, []);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}>
+        {[...Array(4)].map((_, index) => (
+          <Card key={index} className="min-w-[240px] max-w-xs">
+            <CardHeader>
+              <div className="h-6 bg-card-foreground/10 rounded animate-pulse" />
+            </CardHeader>
+            <CardContent className="text-center">
+              <div className="mb-3">
+                <div className="h-6 bg-card-foreground/10 rounded animate-pulse" />
+              </div>
+              <div className="mb-4">
+                <div className="h-9 bg-card-foreground/10 rounded animate-pulse mb-2" />
+                <div className="h-4 bg-card-foreground/10 rounded animate-pulse" />
+              </div>
+              <div className="h-8 bg-card-foreground/10 rounded animate-pulse" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className={`text-center py-8 ${className}`}>
+        <p className="text-destructive mb-4">{error}</p>
+        <Button 
+          variant="outline" 
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (highlights.length === 0) {
+    return (
+      <div className={`text-center py-8 ${className}`}>
+        <p className="text-muted">No statistical highlights available.</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          Try importing some fight data first.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${className}`}>
-      {dummyStats.map((stat, index) => (
-        <StatHighlight
-          key={index}
-          icon={stat.icon}
-          title={stat.title}
-          fighterName={stat.fighterName}
-          statValue={stat.statValue}
-          statLabel={stat.statLabel}
-          fighterUrl={stat.fighterUrl}
-        />
-      ))}
+      {highlights.map((highlight, index) => {
+        const categoryInfo = getCategoryInfo(highlight.category);
+        const fighterName = highlight.fighter?.name || "No Data";
+        const statValue = formatStatValue(highlight.value, highlight.category);
+        const fighterUrl = highlight.fighter 
+          ? `/fighters/${highlight.fighter.id}` 
+          : "#";
+
+        return (
+          <StatHighlight
+            key={`${highlight.category}-${index}`}
+            icon={categoryInfo.icon}
+            title={categoryInfo.title}
+            fighterName={fighterName}
+            statValue={statValue}
+            statLabel={categoryInfo.label}
+            fighterUrl={fighterUrl}
+          />
+        );
+      })}
     </div>
   );
 }

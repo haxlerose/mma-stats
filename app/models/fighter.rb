@@ -320,7 +320,318 @@ class Fighter < ApplicationRecord
     build_fight_details(last_fight)
   end
 
+  # Statistical Highlights - Individual fighter calculations
+  def strikes_landed_per_15_min
+    total_minutes = calculate_total_fight_time
+    return 0.0 if total_minutes.zero?
+
+    total_strikes = fight_stats.sum(:significant_strikes)
+    (total_strikes / total_minutes) * 15.0
+  end
+
+  def submission_attempts_per_15_min
+    total_minutes = calculate_total_fight_time
+    return 0.0 if total_minutes.zero?
+
+    total_attempts = fight_stats.sum(:submission_attempts)
+    (total_attempts / total_minutes) * 15.0
+  end
+
+  def takedowns_landed_per_15_min
+    total_minutes = calculate_total_fight_time
+    return 0.0 if total_minutes.zero?
+
+    total_takedowns = fight_stats.sum(:takedowns)
+    (total_takedowns / total_minutes) * 15.0
+  end
+
+  def knockdowns_per_15_min
+    total_minutes = calculate_total_fight_time
+    return 0.0 if total_minutes.zero?
+
+    total_knockdowns = fight_stats.sum(:knockdowns)
+    (total_knockdowns / total_minutes) * 15.0
+  end
+
+  # Statistical Highlights - Leader finding
+  def self.statistical_highlights
+    cache_key = "statistical_highlights_#{cache_timestamp}"
+
+    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+      calculate_statistical_highlights
+    end
+  end
+
+  def self.calculate_statistical_highlights
+    [
+      build_highlight_entry_with_sql("strikes_per_15min", strikes_leader),
+      build_highlight_entry_with_sql(
+        "submission_attempts_per_15min",
+        submission_attempts_leader
+      ),
+      build_highlight_entry_with_sql("takedowns_per_15min", takedowns_leader),
+      build_highlight_entry_with_sql("knockdowns_per_15min", knockdowns_leader)
+    ]
+  end
+
+  def self.build_highlight_entry_with_sql(category, leader_result)
+    if leader_result
+      {
+        category: category,
+        fighter: leader_result[:fighter],
+        value: leader_result[:value]
+      }
+    else
+      {
+        category: category,
+        fighter: nil,
+        value: 0
+      }
+    end
+  end
+
+  def self.fighter_attributes(fighter)
+    fighter&.slice(:id, :name, :height_in_inches, :reach_in_inches, :birth_date)
+  end
+
+  def self.strikes_leader
+    sql = <<~SQL.squish
+      WITH fighter_fight_totals AS (
+        SELECT
+          fighters.id,
+          fighters.name,
+          fighters.height_in_inches,
+          fighters.reach_in_inches,
+          fighters.birth_date,
+          fights.id as fight_id,
+          SUM(fight_stats.significant_strikes) as fight_strikes,
+          SUM(fight_stats.significant_strikes_attempted) as fight_attempts,
+          MAX(CASE
+            WHEN fights.round = 1 AND fights.time ~ '^[0-9]+:[0-9]+$'
+            THEN CAST(SPLIT_PART(fights.time, ':', 1) AS FLOAT) + CAST(SPLIT_PART(fights.time, ':', 2) AS FLOAT) / 60.0
+            WHEN fights.round > 1 AND fights.time ~ '^[0-9]+:[0-9]+$'
+            THEN ((fights.round - 1) * 5.0) + CAST(SPLIT_PART(fights.time, ':', 1) AS FLOAT) + CAST(SPLIT_PART(fights.time, ':', 2) AS FLOAT) / 60.0
+            ELSE fights.round * 5.0
+          END) as fight_minutes
+        FROM fighters
+        JOIN fight_stats ON fight_stats.fighter_id = fighters.id
+        JOIN fights ON fights.id = fight_stats.fight_id
+        GROUP BY fighters.id, fighters.name, fighters.height_in_inches,
+                 fighters.reach_in_inches, fighters.birth_date, fights.id
+      )
+      SELECT
+        id,
+        name,
+        height_in_inches,
+        reach_in_inches,
+        birth_date,
+        (SUM(fight_strikes) / (SUM(fight_minutes) / 15.0)) as strikes_per_15_min
+      FROM fighter_fight_totals
+      GROUP BY id, name, height_in_inches, reach_in_inches, birth_date
+      HAVING COUNT(fight_id) >= 5
+        AND SUM(fight_attempts) >= 350
+      ORDER BY strikes_per_15_min DESC
+      LIMIT 1
+    SQL
+
+    result = connection.exec_query(sql)
+    return nil if result.empty?
+
+    build_leader_result_from_sql(result.first, "strikes_per_15_min")
+  end
+
+  def self.submission_attempts_leader
+    sql = <<~SQL.squish
+      WITH fighter_fight_totals AS (
+        SELECT
+          fighters.id,
+          fighters.name,
+          fighters.height_in_inches,
+          fighters.reach_in_inches,
+          fighters.birth_date,
+          fights.id as fight_id,
+          SUM(fight_stats.submission_attempts) as fight_submissions,
+          MAX(CASE
+            WHEN fights.round = 1 AND fights.time ~ '^[0-9]+:[0-9]+$'
+            THEN CAST(SPLIT_PART(fights.time, ':', 1) AS FLOAT) + CAST(SPLIT_PART(fights.time, ':', 2) AS FLOAT) / 60.0
+            WHEN fights.round > 1 AND fights.time ~ '^[0-9]+:[0-9]+$'
+            THEN ((fights.round - 1) * 5.0) + CAST(SPLIT_PART(fights.time, ':', 1) AS FLOAT) + CAST(SPLIT_PART(fights.time, ':', 2) AS FLOAT) / 60.0
+            ELSE fights.round * 5.0
+          END) as fight_minutes
+        FROM fighters
+        JOIN fight_stats ON fight_stats.fighter_id = fighters.id
+        JOIN fights ON fights.id = fight_stats.fight_id
+        GROUP BY fighters.id, fighters.name, fighters.height_in_inches,
+                 fighters.reach_in_inches, fighters.birth_date, fights.id
+      )
+      SELECT
+        id,
+        name,
+        height_in_inches,
+        reach_in_inches,
+        birth_date,
+        (SUM(fight_submissions) / (SUM(fight_minutes) / 15.0)) as submission_attempts_per_15_min
+      FROM fighter_fight_totals
+      GROUP BY id, name, height_in_inches, reach_in_inches, birth_date
+      HAVING COUNT(fight_id) >= 5
+      ORDER BY submission_attempts_per_15_min DESC
+      LIMIT 1
+    SQL
+
+    result = connection.exec_query(sql)
+    return nil if result.empty?
+
+    build_leader_result_from_sql(result.first, "submission_attempts_per_15_min")
+  end
+
+  def self.takedowns_leader
+    sql = <<~SQL.squish
+      WITH fighter_fight_totals AS (
+        SELECT
+          fighters.id,
+          fighters.name,
+          fighters.height_in_inches,
+          fighters.reach_in_inches,
+          fighters.birth_date,
+          fights.id as fight_id,
+          SUM(fight_stats.takedowns) as fight_takedowns,
+          SUM(fight_stats.takedowns_attempted) as fight_takedown_attempts,
+          MAX(CASE
+            WHEN fights.round = 1 AND fights.time ~ '^[0-9]+:[0-9]+$'
+            THEN CAST(SPLIT_PART(fights.time, ':', 1) AS FLOAT) + CAST(SPLIT_PART(fights.time, ':', 2) AS FLOAT) / 60.0
+            WHEN fights.round > 1 AND fights.time ~ '^[0-9]+:[0-9]+$'
+            THEN ((fights.round - 1) * 5.0) + CAST(SPLIT_PART(fights.time, ':', 1) AS FLOAT) + CAST(SPLIT_PART(fights.time, ':', 2) AS FLOAT) / 60.0
+            ELSE fights.round * 5.0
+          END) as fight_minutes
+        FROM fighters
+        JOIN fight_stats ON fight_stats.fighter_id = fighters.id
+        JOIN fights ON fights.id = fight_stats.fight_id
+        GROUP BY fighters.id, fighters.name, fighters.height_in_inches,
+                 fighters.reach_in_inches, fighters.birth_date, fights.id
+      )
+      SELECT
+        id,
+        name,
+        height_in_inches,
+        reach_in_inches,
+        birth_date,
+        (SUM(fight_takedowns) / (SUM(fight_minutes) / 15.0)) as takedowns_per_15_min
+      FROM fighter_fight_totals
+      GROUP BY id, name, height_in_inches, reach_in_inches, birth_date
+      HAVING COUNT(fight_id) >= 5
+        AND SUM(fight_takedown_attempts) >= 20
+      ORDER BY takedowns_per_15_min DESC
+      LIMIT 1
+    SQL
+
+    result = connection.exec_query(sql)
+    return nil if result.empty?
+
+    build_leader_result_from_sql(result.first, "takedowns_per_15_min")
+  end
+
+  def self.knockdowns_leader
+    sql = <<~SQL.squish
+      WITH fighter_fight_totals AS (
+        SELECT
+          fighters.id,
+          fighters.name,
+          fighters.height_in_inches,
+          fighters.reach_in_inches,
+          fighters.birth_date,
+          fights.id as fight_id,
+          SUM(fight_stats.knockdowns) as fight_knockdowns,
+          MAX(CASE
+            WHEN fights.round = 1 AND fights.time ~ '^[0-9]+:[0-9]+$'
+            THEN CAST(SPLIT_PART(fights.time, ':', 1) AS FLOAT) + CAST(SPLIT_PART(fights.time, ':', 2) AS FLOAT) / 60.0
+            WHEN fights.round > 1 AND fights.time ~ '^[0-9]+:[0-9]+$'
+            THEN ((fights.round - 1) * 5.0) + CAST(SPLIT_PART(fights.time, ':', 1) AS FLOAT) + CAST(SPLIT_PART(fights.time, ':', 2) AS FLOAT) / 60.0
+            ELSE fights.round * 5.0
+          END) as fight_minutes
+        FROM fighters
+        JOIN fight_stats ON fight_stats.fighter_id = fighters.id
+        JOIN fights ON fights.id = fight_stats.fight_id
+        GROUP BY fighters.id, fighters.name, fighters.height_in_inches,
+                 fighters.reach_in_inches, fighters.birth_date, fights.id
+      )
+      SELECT
+        id,
+        name,
+        height_in_inches,
+        reach_in_inches,
+        birth_date,
+        (SUM(fight_knockdowns) / (SUM(fight_minutes) / 15.0)) as knockdowns_per_15_min
+      FROM fighter_fight_totals
+      GROUP BY id, name, height_in_inches, reach_in_inches, birth_date
+      HAVING COUNT(fight_id) >= 5
+      ORDER BY knockdowns_per_15_min DESC
+      LIMIT 1
+    SQL
+
+    result = connection.exec_query(sql)
+    return nil if result.empty?
+
+    build_leader_result_from_sql(result.first, "knockdowns_per_15_min")
+  end
+
+  def self.build_fighter_from_sql_result(row)
+    new(
+      id: row["id"],
+      name: row["name"],
+      height_in_inches: row["height_in_inches"],
+      reach_in_inches: row["reach_in_inches"],
+      birth_date: row["birth_date"]
+    )
+  end
+
+  def self.build_leader_result_from_sql(
+    row,
+    stat_column = "strikes_per_15_min"
+  )
+    {
+      fighter: {
+        id: row["id"],
+        name: row["name"],
+        height_in_inches: row["height_in_inches"],
+        reach_in_inches: row["reach_in_inches"],
+        birth_date: row["birth_date"]
+      },
+      value: row[stat_column].to_f.round(2)
+    }
+  end
+
   private
+
+  # Calculate total fight time in minutes for this fighter
+  def calculate_total_fight_time
+    fights.sum { |fight| calculate_fight_time(fight) }
+  end
+
+  # Calculate fight time for a single fight
+  def calculate_fight_time(fight)
+    return 0.0 unless fight.round && fight.time
+
+    completed_rounds = fight.round - 1
+    completed_minutes = completed_rounds * 5.0
+
+    # Parse partial round time (e.g., "2:31" -> 2.52 minutes)
+    partial_minutes = parse_time_to_minutes(fight.time)
+
+    completed_minutes + partial_minutes
+  end
+
+  # Parse time string to minutes (e.g., "2:31" -> 2.52)
+  def parse_time_to_minutes(time_string)
+    return 0.0 if time_string.blank?
+
+    parts = time_string.split(":")
+    return 0.0 if parts.length != 2
+
+    minutes = parts[0].to_i
+    seconds = parts[1].to_i
+
+    minutes + (seconds / 60.0)
+  end
 
   # Find the ID of the fighter's most recent fight
   def find_last_fight_id
