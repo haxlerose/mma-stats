@@ -124,25 +124,23 @@ export default function EventsPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-white mb-4">UFC Events</h1>
-          <div className="bg-red-50 border border-red-200 rounded-md p-4 max-w-md mx-auto">
-            <p className="text-red-700">{error}</p>
-            <button
-              onClick={loadEvents}
-              className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-            >
-              Try Again
-            </button>
-          </div>
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-white mb-4">UFC Events</h1>
+        <div className="bg-red-50 border border-red-200 rounded-md p-4 max-w-md mx-auto">
+          <p className="text-red-700">{error}</p>
+          <button
+            onClick={loadEvents}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">UFC Events</h1>
@@ -159,7 +157,7 @@ export default function EventsPage() {
           </label>
           <LocationDropdown
             locations={locations}
-            selectedLocation={selectedLocation}
+            selectedLocation={selectedLocation || undefined}
             onLocationSelect={handleLocationSelect}
             isLoading={locationsLoading}
             error={locationsError}

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 
 interface LocationDropdownProps {
   locations: string[];
-  selectedLocation: string | null;
+  selectedLocation?: string;
   onLocationSelect: (location: string | null) => void;
   isLoading?: boolean;
   error?: string;

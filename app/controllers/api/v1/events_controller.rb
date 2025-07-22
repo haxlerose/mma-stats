@@ -48,6 +48,9 @@ class Api::V1::EventsController < ApplicationController
 
   def build_events_query(parsed_params)
     events = Event.by_location(parsed_params[:location])
+                  .left_joins(:fights)
+                  .group(:id)
+                  .select("events.*, COUNT(fights.id) as fights_count")
 
     if parsed_params[:sort_direction] == "asc"
       events.chronological
@@ -57,7 +60,9 @@ class Api::V1::EventsController < ApplicationController
   end
 
   def paginate_events(events_query, parsed_params)
-    total_count = events_query.count
+    # For count, we need to use the base query without grouping
+    base_query = Event.by_location(parsed_params[:location])
+    total_count = base_query.count
     total_pages = (total_count.to_f / parsed_params[:per_page]).ceil
     offset = (parsed_params[:page] - 1) * parsed_params[:per_page]
     paginated_events = events_query.limit(parsed_params[:per_page])
@@ -81,7 +86,7 @@ class Api::V1::EventsController < ApplicationController
         name: event.name,
         date: event.date,
         location: event.location,
-        fight_count: event.fight_count
+        fight_count: event.fights_count
       }
     end
   end

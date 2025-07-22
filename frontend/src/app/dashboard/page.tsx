@@ -42,10 +42,10 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
       {/* Hero Section */}
-      <Section className="bg-gradient-to-b from-card to-background border-b border-border">
-        <div className="container mx-auto px-4 text-center">
+      <Section className="bg-gradient-to-b from-card to-background border-b border-border -mt-8">
+        <div className="container mx-auto px-4 text-center pt-8">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Latest MMA Fight Statistics
           </h1>
@@ -169,6 +169,6 @@ export default function DashboardPage() {
           <StatHighlights />
         </Section>
       </div>
-    </div>
+    </>
   );
 }
