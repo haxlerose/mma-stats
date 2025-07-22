@@ -38,8 +38,10 @@ export interface Fight {
 }
 
 export interface FightStat {
+  id?: number;
   fighter_id: number;
   fighter_name?: string;
+  fighter?: Fighter;
   round: number;
   
   // Striking statistics

@@ -312,4 +312,138 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 2, meta["total_count"]
     assert_equal 2, meta["total_pages"]
   end
+
+  # Show action tests
+  test "GET show returns event with basic structure" do
+    get "/api/v1/events/#{@event1.id}"
+
+    assert_response :success
+    json_response = response.parsed_body
+    assert_not_nil json_response["event"]
+
+    event = json_response["event"]
+    assert_equal @event1.id, event["id"]
+    assert_equal @event1.name, event["name"]
+    assert_equal @event1.date.to_s, event["date"]
+    assert_equal @event1.location, event["location"]
+  end
+
+  test "GET show includes fights in response" do
+    get "/api/v1/events/#{@event1.id}"
+
+    assert_response :success
+    event = response.parsed_body["event"]
+
+    assert_not_nil event["fights"]
+    assert_equal 2, event["fights"].length
+
+    fight = event["fights"].first
+    assert_not_nil fight["id"]
+    assert_not_nil fight["bout"]
+    assert_not_nil fight["outcome"]
+    assert_not_nil fight["weight_class"]
+    assert_not_nil fight["method"]
+    assert_not_nil fight["round"]
+    assert_not_nil fight["time"]
+    assert_not_nil fight["referee"]
+  end
+
+  test "GET show should include fight_stats with fighter information" do
+    # Create fighters and fight stats for comprehensive testing
+    fighter1 = Fighter.create!(name: "Jon Jones")
+    fighter2 = Fighter.create!(name: "Stipe Miocic")
+    
+    fight = @event1.fights.first
+    
+    FightStat.create!(
+      fight: fight,
+      fighter: fighter1,
+      round: 1,
+      knockdowns: 0,
+      significant_strikes: 12,
+      significant_strikes_attempted: 18,
+      total_strikes: 15,
+      total_strikes_attempted: 22,
+      head_strikes: 8,
+      head_strikes_attempted: 12,
+      body_strikes: 3,
+      body_strikes_attempted: 4,
+      leg_strikes: 1,
+      leg_strikes_attempted: 2,
+      distance_strikes: 10,
+      distance_strikes_attempted: 15,
+      clinch_strikes: 2,
+      clinch_strikes_attempted: 3,
+      ground_strikes: 0,
+      ground_strikes_attempted: 0,
+      takedowns: 1,
+      takedowns_attempted: 2,
+      submission_attempts: 0,
+      reversals: 0,
+      control_time_seconds: 45
+    )
+    
+    FightStat.create!(
+      fight: fight,
+      fighter: fighter2,
+      round: 1,
+      knockdowns: 0,
+      significant_strikes: 8,
+      significant_strikes_attempted: 15,
+      total_strikes: 10,
+      total_strikes_attempted: 18,
+      head_strikes: 5,
+      head_strikes_attempted: 10,
+      body_strikes: 2,
+      body_strikes_attempted: 3,
+      leg_strikes: 1,
+      leg_strikes_attempted: 2,
+      distance_strikes: 7,
+      distance_strikes_attempted: 13,
+      clinch_strikes: 1,
+      clinch_strikes_attempted: 2,
+      ground_strikes: 0,
+      ground_strikes_attempted: 0,
+      takedowns: 0,
+      takedowns_attempted: 1,
+      submission_attempts: 0,
+      reversals: 0,
+      control_time_seconds: 30
+    )
+
+    get "/api/v1/events/#{@event1.id}"
+
+    assert_response :success
+    event = response.parsed_body["event"]
+    fight_data = event["fights"].find { |f| f["id"] == fight.id }
+    
+    assert_not_nil fight_data["fight_stats"], "Fight should include fight_stats"
+    assert_equal 2, fight_data["fight_stats"].length, "Should have stats for both fighters"
+
+    stat = fight_data["fight_stats"].first
+    assert_not_nil stat["round"]
+    assert_not_nil stat["significant_strikes"]
+    assert_not_nil stat["significant_strikes_attempted"]
+    assert_not_nil stat["total_strikes"]
+    assert_not_nil stat["total_strikes_attempted"]
+    assert_not_nil stat["takedowns"]
+    assert_not_nil stat["takedowns_attempted"]
+    assert_not_nil stat["control_time_seconds"]
+    assert_not_nil stat["fighter"], "Fight stat should include fighter information"
+    assert_not_nil stat["fighter"]["id"]
+    assert_not_nil stat["fighter"]["name"]
+  end
+
+  test "GET show returns 404 for non-existent event" do
+    get "/api/v1/events/999999"
+
+    assert_response :not_found
+  end
+
+  test "GET show returns proper JSON content type" do
+    get "/api/v1/events/#{@event1.id}"
+
+    assert_response :success
+    assert_equal "application/json; charset=utf-8", response.content_type
+  end
 end

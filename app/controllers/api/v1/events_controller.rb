@@ -13,7 +13,7 @@ class Api::V1::EventsController < ApplicationController
   end
 
   def show
-    event = Event.includes(:fights).find(params[:id])
+    event = Event.includes(fights: { fight_stats: :fighter }).find(params[:id])
     render json: { event: serialize_event_with_fights(event) }
   end
 
@@ -103,7 +103,40 @@ class Api::V1::EventsController < ApplicationController
                    method
                    round
                    time
-                   referee]
+                   referee],
+          include: {
+            fight_stats: {
+              only: %i[fighter_id
+                       round
+                       knockdowns
+                       significant_strikes
+                       significant_strikes_attempted
+                       total_strikes
+                       total_strikes_attempted
+                       head_strikes
+                       head_strikes_attempted
+                       body_strikes
+                       body_strikes_attempted
+                       leg_strikes
+                       leg_strikes_attempted
+                       distance_strikes
+                       distance_strikes_attempted
+                       clinch_strikes
+                       clinch_strikes_attempted
+                       ground_strikes
+                       ground_strikes_attempted
+                       takedowns
+                       takedowns_attempted
+                       submission_attempts
+                       reversals
+                       control_time_seconds],
+              include: {
+                fighter: {
+                  only: %i[id name height_in_inches reach_in_inches birth_date]
+                }
+              }
+            }
+          }
         }
       }
     )
