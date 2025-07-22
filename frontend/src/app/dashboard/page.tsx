@@ -21,13 +21,13 @@ export default function DashboardPage() {
     async function fetchData() {
       try {
         // Fetch recent events and fighter spotlight concurrently
-        const [events, spotlightFighters] = await Promise.all([
+        const [eventsResponse, spotlightFighters] = await Promise.all([
           apiClient.events.list(),
           apiClient.fighters.spotlight()
         ]);
         
         // Get the 4 most recent events (API returns them date ordered)
-        setRecentEvents(events.slice(0, 4));
+        setRecentEvents(eventsResponse.events.slice(0, 4));
         setFeaturedFighters(spotlightFighters);
       } catch (error) {
         console.error("Failed to fetch data:", error);

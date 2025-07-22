@@ -9,10 +9,13 @@ import {
   Fight,
   EventsResponse,
   EventResponse,
+  EventsLocationsResponse,
   FightersResponse,
   FighterResponse,
   FightResponse,
   FighterSearchParams,
+  EventsSearchParams,
+  PaginationMeta,
   FighterSpotlight,
   FighterSpotlightResponse,
   StatisticalHighlight,
@@ -81,16 +84,42 @@ export const apiClient = {
   // Events API
   events: {
     /**
-     * Get all events (ordered by date descending)
+     * Get events with optional filtering, sorting, and pagination
      */
-    list: (): Promise<Event[]> => 
-      apiFetch<EventsResponse>("/events").then(response => response.events),
+    list: (params?: EventsSearchParams): Promise<EventsResponse> => {
+      const searchParams = new URLSearchParams();
+      
+      if (params?.page) {
+        searchParams.append("page", params.page.toString());
+      }
+      if (params?.per_page) {
+        searchParams.append("per_page", params.per_page.toString());
+      }
+      if (params?.location) {
+        searchParams.append("location", params.location);
+      }
+      if (params?.sort_direction) {
+        searchParams.append("sort_direction", params.sort_direction);
+      }
+      
+      const queryString = searchParams.toString();
+      const endpoint = queryString ? `/events?${queryString}` : "/events";
+      
+      return apiFetch<EventsResponse>(endpoint);
+    },
     
     /**
      * Get specific event with associated fights
      */
     get: (id: number): Promise<Event> =>
       apiFetch<EventResponse>(`/events/${id}`).then(response => response.event),
+      
+    /**
+     * Get all unique event locations (alphabetically sorted)
+     */
+    locations: (): Promise<string[]> =>
+      apiFetch<EventsLocationsResponse>("/events/locations")
+        .then(response => response.locations),
   },
 
   // Fighters API  

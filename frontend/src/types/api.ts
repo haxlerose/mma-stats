@@ -8,6 +8,7 @@ export interface Event {
   name: string;
   date: string; // ISO date string
   location: string;
+  fight_count?: number;
   fights?: Fight[];
 }
 
@@ -80,10 +81,22 @@ export interface FightWithStats extends Fight {
 // API Response wrappers (Rails wraps responses in resource names)
 export interface EventsResponse {
   events: Event[];
+  meta?: PaginationMeta;
 }
 
 export interface EventResponse {
   event: Event;
+}
+
+export interface EventsLocationsResponse {
+  locations: string[];
+}
+
+export interface PaginationMeta {
+  current_page: number;
+  total_pages: number;
+  total_count: number;
+  per_page: number;
 }
 
 export interface FightersResponse {
@@ -107,6 +120,13 @@ export interface ApiError {
 // Search parameters
 export interface FighterSearchParams {
   search?: string;
+}
+
+export interface EventsSearchParams {
+  page?: number;
+  per_page?: number;
+  location?: string;
+  sort_direction?: "asc" | "desc";
 }
 
 // Fighter Spotlight specific types

@@ -1,55 +1,53 @@
 import React from "react";
 import Link from "next/link";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/lib/utils";
 import { Event } from "@/types/api";
 
 interface EventCardProps {
   event: Event;
-  showFightCount?: boolean;
 }
 
-export function EventCard({ event, showFightCount = true }: EventCardProps) {
-  const fightCount = event.fights?.length || 0;
+export function EventCard({ event }: EventCardProps) {
+  const fightCount = event.fight_count ?? 0;
+  const eventDate = new Date(event.date);
+  const now = new Date();
+  const isUpcoming = eventDate > now;
   
-  // Get the main event (usually the first fight in our data structure)
-  const mainEvent = event.fights?.[0];
+  const formattedDate = formatDate(event.date);
 
   return (
-    <Card variant="hover" className="min-w-[280px] max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-primary">{event.name}</CardTitle>
-        <div className="flex flex-col text-sm text-muted">
-          <span>{event.location}</span>
-          <span>{formatDate(event.date)}</span>
-        </div>
-      </CardHeader>
-
-      <CardContent>
-        {mainEvent && (
-          <div className="mb-3">
-            <p className="text-sm font-medium text-foreground">
-              Main Event: {mainEvent.bout}
-            </p>
-            <p className="text-sm text-muted">
-              {mainEvent.outcome} • {mainEvent.method}
-            </p>
+    <article className={`
+      border rounded-lg p-4 bg-white shadow-sm transition-shadow duration-200 hover:shadow-lg
+      ${isUpcoming ? 'border-blue-200' : 'border-gray-200'}
+    `}>
+      <Link 
+        href={`/events/${event.id}`}
+        aria-label={`View details for ${event.name}`}
+        className="block"
+      >
+        <div className="space-y-3">
+          {/* Event Name */}
+          <h3 className="text-lg font-bold text-gray-900 truncate text-wrap">
+            {event.name}
+          </h3>
+          
+          {/* Date */}
+          <div className="text-sm text-gray-600">
+            {formattedDate}
           </div>
-        )}
-
-        {showFightCount && fightCount > 0 && (
-          <p className="text-sm text-muted mb-4">
-            + {fightCount - 1} more fight{fightCount !== 2 ? "s" : ""}
-          </p>
-        )}
-
-        <Link href={`/events/${event.id}`}>
-          <Button variant="outline" size="sm" className="w-full">
-            View Event →
-          </Button>
-        </Link>
-      </CardContent>
-    </Card>
+          
+          {/* Location with Icon */}
+          <div className="flex items-center text-sm text-gray-600">
+            <span className="mr-1">📍</span>
+            <span>{event.location}</span>
+          </div>
+          
+          {/* Fight Count */}
+          <div className="text-sm text-gray-500">
+            {fightCount} fights
+          </div>
+        </div>
+      </Link>
+    </article>
   );
 }
