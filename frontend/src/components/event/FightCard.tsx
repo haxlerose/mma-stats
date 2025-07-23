@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Fight } from '@/types/api';
 import { FightStats } from './FightStats';
 
@@ -199,6 +200,16 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
           className="border-t border-gray-100 p-4"
         >
           <FightStats fight={fight} />
+          
+          {/* Link to Fight Details */}
+          <div className="mt-4">
+            <Link 
+              href={`/fights/${fight.id}`}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              View Full Fight Details →
+            </Link>
+          </div>
         </div>
       )}
     </article>
