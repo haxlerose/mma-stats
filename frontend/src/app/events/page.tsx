@@ -157,10 +157,10 @@ export default function EventsPage() {
           </label>
           <LocationDropdown
             locations={locations}
-            selectedLocation={selectedLocation || undefined}
+            {...(selectedLocation && { selectedLocation })}
             onLocationSelect={handleLocationSelect}
             isLoading={locationsLoading}
-            error={locationsError}
+            {...(locationsError && { error: locationsError })}
           />
         </div>
         

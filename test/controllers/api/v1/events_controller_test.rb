@@ -352,9 +352,9 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     # Create fighters and fight stats for comprehensive testing
     fighter1 = Fighter.create!(name: "Jon Jones")
     fighter2 = Fighter.create!(name: "Stipe Miocic")
-    
+
     fight = @event1.fights.first
-    
+
     FightStat.create!(
       fight: fight,
       fighter: fighter1,
@@ -382,7 +382,7 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
       reversals: 0,
       control_time_seconds: 45
     )
-    
+
     FightStat.create!(
       fight: fight,
       fighter: fighter2,
@@ -416,9 +416,11 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     event = response.parsed_body["event"]
     fight_data = event["fights"].find { |f| f["id"] == fight.id }
-    
+
     assert_not_nil fight_data["fight_stats"], "Fight should include fight_stats"
-    assert_equal 2, fight_data["fight_stats"].length, "Should have stats for both fighters"
+    assert_equal 2,
+                 fight_data["fight_stats"].length,
+                 "Should have stats for both fighters"
 
     stat = fight_data["fight_stats"].first
     assert_not_nil stat["round"]
@@ -429,7 +431,8 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil stat["takedowns"]
     assert_not_nil stat["takedowns_attempted"]
     assert_not_nil stat["control_time_seconds"]
-    assert_not_nil stat["fighter"], "Fight stat should include fighter information"
+    assert_not_nil stat["fighter"],
+                   "Fight stat should include fighter information"
     assert_not_nil stat["fighter"]["id"]
     assert_not_nil stat["fighter"]["name"]
   end
