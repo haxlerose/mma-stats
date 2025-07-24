@@ -1,9 +1,22 @@
 # frozen_string_literal: true
 
 class Api::V1::FightersController < ApplicationController
+  include Pagination
+  include ParameterParsing
   def index
-    fighters = Fighter.alphabetical.search(params[:search])
-    render json: { fighters: serialize_fighters_for_index(fighters) }
+    pagination_params = parse_pagination_params
+    fighters_query = Fighter.alphabetical.search(params[:search])
+
+    result = paginate(
+      fighters_query,
+      page: pagination_params[:page],
+      per_page: pagination_params[:per_page]
+    )
+
+    render json: {
+      fighters: serialize_fighters_for_index(result[:items]),
+      meta: result[:meta]
+    }
   end
 
   def show

@@ -22,6 +22,10 @@ class Api::V1::FightersControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Anderson Silva", fighters.first["name"]
     assert_equal "Michael Jordan", fighters.second["name"]
     assert_equal "Zion Clark", fighters.last["name"]
+    
+    # Should include pagination metadata
+    assert_not_nil response_data["meta"]
+    assert_equal 3, response_data["meta"]["total_count"]
   end
 
   test "should order fighters case-insensitively" do
@@ -247,5 +251,71 @@ class Api::V1::FightersControllerTest < ActionDispatch::IntegrationTest
   test "should return 404 for non-existent fighter" do
     get api_v1_fighter_url(99_999)
     assert_response :not_found
+  end
+
+  test "should paginate fighters with default per_page" do
+    # Create 25 fighters to test pagination
+    25.times do |i|
+      Fighter.create!(name: "Fighter #{format('%02d', i)}")
+    end
+
+    get api_v1_fighters_url
+    response_data = response.parsed_body
+
+    assert_equal 20, response_data["fighters"].length # Default per_page
+    assert_equal 1, response_data["meta"]["current_page"]
+    assert_equal 2, response_data["meta"]["total_pages"]
+    assert_equal 25, response_data["meta"]["total_count"]
+    assert_equal 20, response_data["meta"]["per_page"]
+  end
+
+  test "should paginate fighters with custom per_page" do
+    # Create 15 fighters
+    15.times do |i|
+      Fighter.create!(name: "Fighter #{format('%02d', i)}")
+    end
+
+    get api_v1_fighters_url(per_page: 5)
+    response_data = response.parsed_body
+
+    assert_equal 5, response_data["fighters"].length
+    assert_equal 1, response_data["meta"]["current_page"]
+    assert_equal 3, response_data["meta"]["total_pages"]
+    assert_equal 15, response_data["meta"]["total_count"]
+    assert_equal 5, response_data["meta"]["per_page"]
+  end
+
+  test "should return correct page of fighters" do
+    # Create 10 fighters with predictable names
+    10.times do |i|
+      Fighter.create!(name: "Fighter #{format('%02d', i)}")
+    end
+
+    get api_v1_fighters_url(page: 2, per_page: 3)
+    response_data = response.parsed_body
+
+    assert_equal 3, response_data["fighters"].length
+    assert_equal 2, response_data["meta"]["current_page"]
+    
+    # Check we have the correct fighters (alphabetically sorted)
+    fighter_names = response_data["fighters"].map { |f| f["name"] }
+    assert_equal ["Fighter 03", "Fighter 04", "Fighter 05"], fighter_names
+  end
+
+  test "should handle pagination with search" do
+    # Create fighters with different names
+    Fighter.create!(name: "Anderson Silva")
+    Fighter.create!(name: "Anderson Cooper")
+    Fighter.create!(name: "Silva Jones")
+    Fighter.create!(name: "John Smith")
+    Fighter.create!(name: "Jane Doe")
+
+    get api_v1_fighters_url(search: "Anderson", per_page: 1)
+    response_data = response.parsed_body
+
+    assert_equal 1, response_data["fighters"].length
+    assert_equal "Anderson Cooper", response_data["fighters"].first["name"]
+    assert_equal 2, response_data["meta"]["total_count"] # Anderson Silva and Anderson Cooper
+    assert_equal 2, response_data["meta"]["total_pages"]
   end
 end

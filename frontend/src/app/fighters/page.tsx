@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { apiClient } from '@/lib/api';
-import { Fighter } from '@/types/api';
+import { Fighter, PaginationMeta } from '@/types/api';
 import { FighterCard } from '@/components/fighter/FighterCard';
+import Pagination from '@/components/Pagination';
 
 export default function FightersPage() {
   const router = useRouter();
@@ -12,21 +13,44 @@ export default function FightersPage() {
   const searchParams = useSearchParams();
   
   const [fighters, setFighters] = useState<Fighter[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta>({
+    current_page: 1,
+    total_pages: 1,
+    total_count: 0,
+    per_page: 20
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Get search from URL
+  // Get search and page from URL
   const urlSearch = searchParams.get('search') || '';
+  const urlPage = parseInt(searchParams.get('page') || '1', 10);
 
-  // Update URL with search parameter
-  const updateURL = (search: string) => {
+  // Update URL with search parameter and page
+  const updateURL = (params: { search?: string; page?: number }) => {
     const newSearchParams = new URLSearchParams(searchParams.toString());
     
-    if (search) {
-      newSearchParams.set('search', search);
-    } else {
-      newSearchParams.delete('search');
+    // Update search
+    if (params.search !== undefined) {
+      if (params.search) {
+        newSearchParams.set('search', params.search);
+      } else {
+        newSearchParams.delete('search');
+      }
+      // Reset to page 1 when search changes
+      if (params.page === undefined) {
+        newSearchParams.set('page', '1');
+      }
+    }
+    
+    // Update page
+    if (params.page !== undefined) {
+      if (params.page > 1) {
+        newSearchParams.set('page', params.page.toString());
+      } else {
+        newSearchParams.delete('page');
+      }
     }
 
     const newURL = `${pathname}?${newSearchParams.toString()}`;
@@ -39,9 +63,16 @@ export default function FightersPage() {
     setError(null);
     
     try {
-      const params = urlSearch ? { search: urlSearch } : undefined;
-      const fightersData = await apiClient.fighters.list(params);
-      setFighters(fightersData);
+      const params = {
+        ...(urlSearch && { search: urlSearch }),
+        page: urlPage,
+        per_page: 20
+      };
+      const response = await apiClient.fighters.list(params);
+      setFighters(response.fighters);
+      if (response.meta) {
+        setPagination(response.meta);
+      }
     } catch (err) {
       setError('Failed to load fighters. Please try again.');
       console.error('Error loading fighters:', err);
@@ -50,10 +81,10 @@ export default function FightersPage() {
     }
   };
 
-  // Load fighters on mount and when search changes
+  // Load fighters on mount and when search or page changes
   useEffect(() => {
     loadFighters();
-  }, [urlSearch]);
+  }, [urlSearch, urlPage]);
 
   // Set initial search term from URL
   useEffect(() => {
@@ -64,17 +95,22 @@ export default function FightersPage() {
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchTerm !== urlSearch) {
-        updateURL(searchTerm.trim());
+        updateURL({ search: searchTerm.trim() });
       }
     }, 300); // 300ms delay
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, urlSearch, updateURL]);
+  }, [searchTerm, urlSearch]);
 
   // Handle clear search
   const handleClearSearch = () => {
     setSearchTerm('');
-    updateURL('');
+    updateURL({ search: '' });
+  };
+  
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    updateURL({ page });
   };
 
   return (
@@ -112,15 +148,15 @@ export default function FightersPage() {
       </div>
 
       {/* Results count */}
-      {!isLoading && !error && (
+      {!isLoading && !error && pagination.total_count > 0 && (
         <div className="text-sm text-gray-600">
           {urlSearch ? (
             <span>
-              Found {fighters.length} fighter{fighters.length !== 1 ? 's' : ''} matching "{urlSearch}"
+              Found {pagination.total_count} fighter{pagination.total_count !== 1 ? 's' : ''} matching "{urlSearch}"
             </span>
           ) : (
             <span>
-              Showing all {fighters.length} fighters
+              Total: {pagination.total_count} fighters
             </span>
           )}
         </div>
@@ -163,11 +199,26 @@ export default function FightersPage() {
       )}
 
       {!isLoading && !error && fighters.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {fighters.map((fighter) => (
-            <FighterCard key={fighter.id} fighter={fighter} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {fighters.map((fighter) => (
+              <FighterCard key={fighter.id} fighter={fighter} />
+            ))}
+          </div>
+          
+          {/* Pagination */}
+          {pagination.total_pages > 1 && (
+            <div className="mt-8">
+              <Pagination
+                currentPage={pagination.current_page}
+                totalPages={pagination.total_pages}
+                totalCount={pagination.total_count}
+                perPage={pagination.per_page}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   );

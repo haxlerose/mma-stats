@@ -118,19 +118,25 @@ export const apiClient = {
   // Fighters API  
   fighters: {
     /**
-     * Get all fighters (alphabetically sorted)
-     * @param params - Optional search parameters
+     * Get all fighters (alphabetically sorted) with pagination
+     * @param params - Optional search and pagination parameters
      */
-    list: (params?: FighterSearchParams): Promise<Fighter[]> => {
+    list: (params?: FighterSearchParams): Promise<FightersResponse> => {
       const searchParams = new URLSearchParams();
       if (params?.search) {
         searchParams.append("search", params.search);
+      }
+      if (params?.page) {
+        searchParams.append("page", params.page.toString());
+      }
+      if (params?.per_page) {
+        searchParams.append("per_page", params.per_page.toString());
       }
       
       const queryString = searchParams.toString();
       const endpoint = queryString ? `/fighters?${queryString}` : "/fighters";
       
-      return apiFetch<FightersResponse>(endpoint).then(response => response.fighters);
+      return apiFetch<FightersResponse>(endpoint);
     },
     
     /**

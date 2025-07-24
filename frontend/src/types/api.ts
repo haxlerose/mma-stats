@@ -103,6 +103,7 @@ export interface PaginationMeta {
 
 export interface FightersResponse {
   fighters: Fighter[];
+  meta?: PaginationMeta;
 }
 
 export interface FighterResponse {
@@ -122,6 +123,8 @@ export interface ApiError {
 // Search parameters
 export interface FighterSearchParams {
   search?: string;
+  page?: number;
+  per_page?: number;
 }
 
 export interface EventsSearchParams {
