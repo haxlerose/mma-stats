@@ -16,6 +16,16 @@ class Event < ApplicationRecord
         }
   scope :chronological, -> { order(:date) }
   scope :reverse_chronological, -> { order(date: :desc) }
+  scope :with_fight_counts,
+        lambda {
+          left_joins(:fights)
+            .group(:id)
+            .select("events.*, COUNT(fights.id) as fights_count")
+        }
+  scope :sorted_by_date,
+        lambda { |direction = "desc"|
+          direction == "asc" ? chronological : reverse_chronological
+        }
 
   # Instance methods
   def fight_count

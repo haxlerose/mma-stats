@@ -90,7 +90,7 @@ export interface EventResponse {
   event: Event;
 }
 
-export interface EventsLocationsResponse {
+export interface LocationsResponse {
   locations: string[];
 }
 

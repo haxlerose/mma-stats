@@ -218,7 +218,35 @@ describe('Events API', () => {
     });
   });
 
-  describe('events.locations', () => {
+
+  describe('network error handling', () => {
+    test('handles network errors', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      await expect(apiClient.events.list()).rejects.toThrow(ApiClientError);
+      await expect(apiClient.events.list()).rejects.toThrow('Network error: Network error');
+    });
+
+    test('handles JSON parsing errors', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => {
+          throw new Error('Invalid JSON');
+        },
+      } as Response);
+
+      await expect(apiClient.events.list()).rejects.toThrow(ApiClientError);
+      await expect(apiClient.events.list()).rejects.toThrow('Network error: Invalid JSON');
+    });
+  });
+});
+
+describe('Locations API', () => {
+  beforeEach(() => {
+    mockFetch.mockClear();
+  });
+
+  describe('locations.list', () => {
     test('calls locations endpoint', async () => {
       const mockResponse = {
         locations: ['Las Vegas, Nevada', 'New York, New York']
@@ -229,10 +257,10 @@ describe('Events API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await apiClient.events.locations();
+      const result = await apiClient.locations.list();
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'http://localhost:3000/api/v1/events/locations',
+        'http://localhost:3000/api/v1/locations',
         {
           headers: {
             'Accept': 'application/json',
@@ -253,7 +281,7 @@ describe('Events API', () => {
         json: async () => mockResponse,
       } as Response);
 
-      const result = await apiClient.events.locations();
+      const result = await apiClient.locations.list();
 
       expect(result).toEqual([]);
     });
@@ -265,29 +293,8 @@ describe('Events API', () => {
         statusText: 'Not Found',
       } as Response);
 
-      await expect(apiClient.events.locations()).rejects.toThrow(ApiClientError);
-      await expect(apiClient.events.locations()).rejects.toThrow('API request failed: 404 Not Found');
-    });
-  });
-
-  describe('network error handling', () => {
-    test('handles network errors', async () => {
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
-
-      await expect(apiClient.events.list()).rejects.toThrow(ApiClientError);
-      await expect(apiClient.events.list()).rejects.toThrow('Network error: Network error');
-    });
-
-    test('handles JSON parsing errors', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => {
-          throw new Error('Invalid JSON');
-        },
-      } as Response);
-
-      await expect(apiClient.events.list()).rejects.toThrow(ApiClientError);
-      await expect(apiClient.events.list()).rejects.toThrow('Network error: Invalid JSON');
+      await expect(apiClient.locations.list()).rejects.toThrow(ApiClientError);
+      await expect(apiClient.locations.list()).rejects.toThrow('API request failed: 404 Not Found');
     });
   });
 });

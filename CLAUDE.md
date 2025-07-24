@@ -151,6 +151,7 @@ npm run lint               # ESLint check
 
 ### Code Quality
 - Follow SOLID, OOP, and Ruby on Rails best practices for Ruby code
+- Keep controller and model files skinny following Single Responsibility Principle
 - Frontend components should be designed to be reusable
 - Use TypeScript strict mode with proper type definitions
 - Implement proper error boundaries and loading states

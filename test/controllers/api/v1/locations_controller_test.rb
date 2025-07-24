@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class Api::V1::EventsLocationsTest < ActionDispatch::IntegrationTest
+class Api::V1::LocationsControllerTest < ActionDispatch::IntegrationTest
   def setup
     # Create events with different locations for testing
     Event.create!(
@@ -33,8 +33,8 @@ class Api::V1::EventsLocationsTest < ActionDispatch::IntegrationTest
     )
   end
 
-  test "GET locations returns unique locations alphabetically" do
-    get "/api/v1/events/locations"
+  test "GET index returns unique locations alphabetically" do
+    get "/api/v1/locations"
 
     assert_response :success
     assert_equal "application/json; charset=utf-8", response.content_type
@@ -53,7 +53,7 @@ class Api::V1::EventsLocationsTest < ActionDispatch::IntegrationTest
     assert_equal expected_locations, locations
   end
 
-  test "GET locations excludes null/empty locations" do
+  test "GET index excludes null/empty locations" do
     # Create event with nil location (should be excluded by validation)
     # Create event with empty location (should be excluded)
     event_with_empty = Event.new(
@@ -64,7 +64,7 @@ class Api::V1::EventsLocationsTest < ActionDispatch::IntegrationTest
     # Skip validation to test the exclusion logic
     event_with_empty.save(validate: false)
 
-    get "/api/v1/events/locations"
+    get "/api/v1/locations"
 
     assert_response :success
     locations = response.parsed_body["locations"]
@@ -74,8 +74,8 @@ class Api::V1::EventsLocationsTest < ActionDispatch::IntegrationTest
     assert_not_includes locations, nil
   end
 
-  test "GET locations returns proper JSON structure" do
-    get "/api/v1/events/locations"
+  test "GET index returns proper JSON structure" do
+    get "/api/v1/locations"
 
     assert_response :success
     json_response = response.parsed_body
@@ -92,11 +92,11 @@ class Api::V1::EventsLocationsTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "GET locations handles empty database" do
+  test "GET index handles empty database" do
     # Delete all events
     Event.delete_all
 
-    get "/api/v1/events/locations"
+    get "/api/v1/locations"
 
     assert_response :success
     json_response = response.parsed_body
@@ -104,8 +104,8 @@ class Api::V1::EventsLocationsTest < ActionDispatch::IntegrationTest
     assert_equal [], json_response["locations"]
   end
 
-  test "GET locations handles special characters correctly" do
-    get "/api/v1/events/locations"
+  test "GET index handles special characters correctly" do
+    get "/api/v1/locations"
 
     assert_response :success
     locations = response.parsed_body["locations"]
@@ -114,9 +114,9 @@ class Api::V1::EventsLocationsTest < ActionDispatch::IntegrationTest
     assert_includes locations, "São Paulo, Brazil"
   end
 
-  test "GET locations removes duplicate locations" do
+  test "GET index removes duplicate locations" do
     # Las Vegas appears twice in our test data
-    get "/api/v1/events/locations"
+    get "/api/v1/locations"
 
     assert_response :success
     locations = response.parsed_body["locations"]

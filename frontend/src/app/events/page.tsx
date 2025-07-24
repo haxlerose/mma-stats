@@ -79,7 +79,7 @@ export default function EventsPage() {
     setLocationsError(null);
 
     try {
-      const locationsData = await apiClient.events.locations();
+      const locationsData = await apiClient.locations.list();
       setLocations(locationsData);
     } catch (err) {
       setLocationsError('Failed to load locations');

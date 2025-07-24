@@ -8,15 +8,12 @@ Rails.application.routes.draw do
   # API routes
   namespace :api do
     namespace :v1 do
-      resources :events, only: [:index, :show] do
-        collection do
-          get :locations
-        end
-      end
+      resources :events, only: [:index, :show]
       resources :fighters, only: [:index, :show]
       resources :fights, only: [:show]
       resources :fighter_spotlight, only: [:index]
       resources :statistical_highlights, only: [:index]
+      resources :locations, only: [:index]
     end
   end
 

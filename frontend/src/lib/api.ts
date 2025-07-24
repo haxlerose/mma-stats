@@ -9,7 +9,7 @@ import {
   Fight,
   EventsResponse,
   EventResponse,
-  EventsLocationsResponse,
+  LocationsResponse,
   FightersResponse,
   FighterResponse,
   FightResponse,
@@ -113,13 +113,6 @@ export const apiClient = {
      */
     get: (id: number): Promise<Event> =>
       apiFetch<EventResponse>(`/events/${id}`).then(response => response.event),
-      
-    /**
-     * Get all unique event locations (alphabetically sorted)
-     */
-    locations: (): Promise<string[]> =>
-      apiFetch<EventsLocationsResponse>("/events/locations")
-        .then(response => response.locations),
   },
 
   // Fighters API  
@@ -171,6 +164,16 @@ export const apiClient = {
     highlights: (): Promise<StatisticalHighlight[]> =>
       apiFetch<StatisticalHighlightsResponse>("/statistical_highlights")
         .then(response => response.highlights),
+  },
+
+  // Locations API
+  locations: {
+    /**
+     * Get all unique event locations (alphabetically sorted)
+     */
+    list: (): Promise<string[]> =>
+      apiFetch<LocationsResponse>("/locations")
+        .then(response => response.locations),
   },
 
   // Health check
