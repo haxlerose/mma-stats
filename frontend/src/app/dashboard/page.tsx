@@ -159,14 +159,16 @@ export default function DashboardPage() {
 
         {/* Stats Highlights */}
         <Section className="border-t border-border bg-card/30">
-          <SectionHeader>
+          <SectionHeader className="text-center">
             <SectionTitle>Statistical Highlights</SectionTitle>
             <SectionSubtitle>
               Outstanding performances and record holders
             </SectionSubtitle>
           </SectionHeader>
 
-          <StatHighlights />
+          <div className="flex justify-center">
+            <StatHighlights />
+          </div>
         </Section>
       </div>
     </>

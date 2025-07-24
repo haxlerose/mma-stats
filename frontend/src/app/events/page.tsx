@@ -125,7 +125,7 @@ export default function EventsPage() {
   if (error) {
     return (
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white mb-4">UFC Events</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">UFC Events</h1>
         <div className="bg-red-50 border border-red-200 rounded-md p-4 max-w-md mx-auto">
           <p className="text-red-700">{error}</p>
           <button
@@ -143,8 +143,8 @@ export default function EventsPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">UFC Events</h1>
-        <p className="text-gray-600">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">UFC Events</h1>
+        <p className="text-gray-700 font-medium">
           {pagination.total_count} events total
         </p>
       </div>
@@ -152,7 +152,7 @@ export default function EventsPage() {
       {/* Filters */}
       <div className="mb-8 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="flex-1 max-w-md">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-800 mb-2">
             Location
           </label>
           <LocationDropdown
@@ -165,7 +165,7 @@ export default function EventsPage() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-800 mb-2">
             Sort
           </label>
           <SortToggle

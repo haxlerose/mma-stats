@@ -46,7 +46,7 @@ export function SectionTitle({
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h2 className={cn("text-2xl font-bold text-foreground", className)} {...props}>
+    <h2 className={cn("text-2xl font-bold text-gray-900", className)} {...props}>
       {children}
     </h2>
   );
@@ -58,7 +58,7 @@ export function SectionSubtitle({
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
-    <p className={cn("text-muted mt-2", className)} {...props}>
+    <p className={cn("text-gray-700 mt-2", className)} {...props}>
       {children}
     </p>
   );
