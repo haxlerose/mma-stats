@@ -26,8 +26,8 @@ export default function DashboardPage() {
           apiClient.fighters.spotlight()
         ]);
         
-        // Get the 4 most recent events (API returns them date ordered)
-        setRecentEvents(eventsResponse.events.slice(0, 4));
+        // Get the 8 most recent events for desktop (API returns them date ordered)
+        setRecentEvents(eventsResponse.events.slice(0, 8));
         setFeaturedFighters(spotlightFighters);
       } catch (error) {
         console.error("Failed to fetch data:", error);
@@ -83,7 +83,7 @@ export default function DashboardPage() {
 
               {isLoadingEvents ? (
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {[...Array(4)].map((_, i) => (
+                  {[...Array(8)].map((_, i) => (
                     <div
                       key={i}
                       className="h-48 bg-card border border-border rounded-lg animate-pulse"
@@ -92,8 +92,10 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {recentEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
+                  {recentEvents.map((event, index) => (
+                    <div key={event.id} className={index >= 4 ? "hidden lg:block" : ""}>
+                      <EventCard event={event} />
+                    </div>
                   ))}
                 </div>
               )}
@@ -104,6 +106,17 @@ export default function DashboardPage() {
                   <p className="text-sm mt-2">
                     Try importing some event data first.
                   </p>
+                </div>
+              )}
+
+              {/* View All Events Link */}
+              {!isLoadingEvents && recentEvents.length > 0 && (
+                <div className="mt-6 text-center">
+                  <Link href="/events">
+                    <Button variant="outline" size="sm">
+                      View All Events →
+                    </Button>
+                  </Link>
                 </div>
               )}
             </Section>
