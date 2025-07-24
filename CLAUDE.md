@@ -4,14 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a Ruby on Rails 8.0.2 API-only application for MMA (Mixed Martial Arts) statistics data collection and storage. The application imports comprehensive UFC data including events, fighters, fights, and detailed fight statistics from external CSV sources.
+Full-stack MMA statistics application with Rails API backend and Next.js frontend for comprehensive UFC data visualization.
 
-**Technology Stack:**
-- Ruby 3.4.5 with Rails 8.0.2 (API-only mode)
-- PostgreSQL database
-- Faraday for external HTTP requests
-- VCR for recording/replaying HTTP interactions in tests
-- Solid Queue/Cache/Cable (Rails 8 native adapters)
+**Backend Stack:**
+- Ruby 3.4.5 with Rails 8.0.2 (API-only)
+- PostgreSQL with Solid Queue/Cache/Cable
+- Faraday for HTTP requests, VCR for test recording
+
+**Frontend Stack:**
+- Next.js 15.4.2 with App Router
+- React 19.1.0 with TypeScript
+- Tailwind CSS v4 for styling
+- Jest + React Testing Library
 
 ## Essential Commands
 
@@ -40,14 +44,28 @@ bin/brakeman                # Security scanning
 
 # Deployment
 bin/kamal deploy            # Deploy using Kamal
+
+# Frontend (in frontend directory)
+npm install                 # Install dependencies
+npm run dev                 # Start dev server (port 3001)
+npm run build              # Build for production
+npm test                   # Run tests
+npm run lint               # ESLint check
 ```
 
 ## Project Architecture
 
-### API-Only Configuration
-- No views or frontend components
-- JSON API responses only
-- CORS configuration needed for frontend clients
+### Backend (Rails API)
+- API-only mode with JSON responses
+- CORS enabled for frontend at localhost:3001
+- RESTful endpoints under /api/v1 namespace
+
+### Frontend (Next.js)
+- `/frontend` directory with App Router structure
+- Pages: Dashboard, Events, Fighters, Fight details
+- Reusable components in `/components`
+- API client at `/lib/api.ts` for backend communication
+- TypeScript interfaces in `/types/api.ts`
 
 ### Database Structure
 **Database Type:** PostgreSQL with Rails 8.0.2 Solid adapters
@@ -66,7 +84,7 @@ bin/kamal deploy            # Deploy using Kamal
 **Fighters Table:**
 - **Purpose:** Fighter profiles with physical attributes
 - **Columns:** id, name (not null), height_in_inches, reach_in_inches, birth_date, timestamps
-- **Indexes:** 
+- **Indexes:**
   - Standard btree on name
   - Functional index on LOWER(name) for case-insensitive sorting
   - GIN trigram index for fuzzy text search
@@ -85,7 +103,7 @@ bin/kamal deploy            # Deploy using Kamal
 
 **Fight Stats Table:**
 - **Purpose:** Detailed round-by-round fighting statistics per fighter
-- **Columns:** 
+- **Columns:**
   - **Core:** id, fight_id (FK), fighter_id (FK), round, timestamps
   - **Striking:** knockdowns, significant_strikes/attempted, total_strikes/attempted
   - **Target-Specific:** head/body/leg strikes and attempts
@@ -127,6 +145,20 @@ bin/kamal deploy            # Deploy using Kamal
 
 ## Development Standards
 
+### Git Messages
+- **GIT COMMIT MESSAGES SHOULD ONLY CONTAIN CODE CHANGE DESCRIPTIONS**
+- **YOU MUST NOT mention "Claude" in commit messages**
+
+### Code Quality
+- Follow SOLID, OOP, and Ruby on Rails best practices for Ruby code
+- Frontend components should be designed to be reusable
+- Use TypeScript strict mode with proper type definitions
+- Implement proper error boundaries and loading states
+- Keep components focused - single responsibility principle
+- Extract business logic into custom hooks when appropriate
+- Avoid prop drilling - use component composition
+- Follow RESTful conventions for API endpoints
+
 ## Testing (TDD MANDATORY)
 
 ### ⚠️ CRITICAL REQUIREMENT
@@ -166,18 +198,30 @@ bin/kamal deploy            # Deploy using Kamal
 - `GET /api/v1/events` - List events (date ordered) + `GET /api/v1/events/:id` - Event with fights
 - `GET /api/v1/fighters` - List fighters (searchable) + `GET /api/v1/fighters/:id` - Fighter with full history
 - `GET /api/v1/fights/:id` - Complete fight details with statistics
-- `GET /up` - Health check
 
 **Features:** Custom JSON serialization, eager loading optimization, fighter name search, comprehensive round-by-round statistics, no authentication (open API)
+
+## Frontend Pages & Components
+
+**Main Pages:**
+- `/` - Dashboard with recent events, fighter spotlight, stats
+- `/events` - Paginated event list with location filtering
+- `/events/[id]` - Event details with fight card
+- `/fighters` - Fighter search with debounced input
+- `/fighters/[id]` - Fighter profile with stats and history
+- `/fights/[id]` - Fight details with round-by-round breakdown
+
+**Key Features:**
+- Responsive design with Tailwind CSS
+- Loading states and error handling
+- Debounced search functionality
+- Fight statistics visualization
+- Avatar circles with fighter initials
 
 ## Important Notes
 
 - **IMPORTANT! YOU MUST ALWAYS USE TDD AS EXPLAINED EARLIER**
-- **GIT COMMIT MESSAGES SHOULD ONLY INCLUDE DESCRIPTIONS OF CODE CHANGES**
-- **YOU MUST NOT mention "Claude" or anything similar at all in commit messages**
-- This is an API-only application - no views or assets pipeline
-- Currently focused on data collection and storage, not prediction modeling
-- Use JSON serialization for all API responses
-- API versioning implemented (v1) for future iterations
-- Solid Queue is used for background jobs
-- Multi-database production setup requires careful migration targeting
+- Frontend runs on port 3001, backend on 3000
+- Use TypeScript for all frontend code
+- Follow existing component patterns
+- Maintain consistent styling with Tailwind

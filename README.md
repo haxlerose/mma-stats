@@ -1,35 +1,53 @@
-# MMA Stats API
+# MMA Stats
 
-A Ruby on Rails API application for collecting and storing comprehensive Mixed Martial Arts (MMA) statistics from UFC events, fights, and fighters.
+Full-stack application for UFC statistics with Rails API backend and Next.js frontend.
 
 ## Overview
 
-This API-only Rails application imports and stores comprehensive UFC data including events, fighters, individual fights, and detailed round-by-round fight statistics from external CSV sources.
+Comprehensive UFC statistics platform featuring:
+- Rails API backend with PostgreSQL database
+- Next.js frontend with TypeScript and Tailwind CSS
+- Event browsing, fighter profiles, and detailed fight statistics
+- Round-by-round fight breakdowns with visual comparisons
 
 ## Requirements
 
-- Ruby 3.4.5
-- Rails 8.0.2
+Backend:
+- Ruby 3.4.5, Rails 8.0.2
 - PostgreSQL
 - Redis (for Solid Queue/Cache/Cable)
+
+Frontend:
+- Node.js 18+
+- npm or yarn
 
 ## Setup
 
 1. Clone the repository
-2. Install dependencies:
+2. Backend setup:
    ```bash
    bin/setup
+   ```
+3. Frontend setup:
+   ```bash
+   cd frontend
+   npm install
    ```
 
 ## Development
 
 ### Running the Application
 
+Backend API:
 ```bash
-bin/rails server
+bin/rails server    # Runs on http://localhost:3000
 ```
 
-The API will be available at `http://localhost:3000`
+Frontend:
+```bash
+cd frontend
+npm run dev        # Runs on http://localhost:3001
+```
 
 ### Database
 
@@ -237,6 +255,23 @@ GET /up
 - **Search Capability**: Fighter name fuzzy matching
 - **Comprehensive Statistics**: Round-by-round striking and grappling metrics
 - **Read-Only**: GET operations only (index and show actions)
+
+## Frontend Features
+
+### Pages
+- **Dashboard** (`/`): Recent events, fighter spotlight, statistical highlights
+- **Events** (`/events`): Browse all events with location filtering and pagination
+- **Event Details** (`/events/[id]`): View fight card with expandable fight stats
+- **Fighters** (`/fighters`): Search fighters with debounced real-time search
+- **Fighter Profile** (`/fighters/[id]`): Career stats, fight history, physical attributes
+- **Fight Details** (`/fights/[id]`): Round-by-round breakdown with visual comparisons
+
+### Key Components
+- Loading states and error handling throughout
+- Responsive design with mobile-first approach
+- Fighter avatars with initials
+- Statistical visualizations with progress bars
+- Expandable fight cards with detailed statistics
 
 ## Deployment
 
