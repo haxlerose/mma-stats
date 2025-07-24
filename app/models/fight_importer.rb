@@ -1,41 +1,37 @@
 # frozen_string_literal: true
 
 class FightImporter
+  include MultiSourceCsvImport
+
   CSV_URL = "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/" \
             "refs/heads/main/ufc_fight_results.csv"
 
-  class ImportError < StandardError; end
-
   def import
-    csv_data = parse_csv_data
     results = { imported: [], failed: [] }
 
     # Preload all events to avoid N+1 queries
     preload_events
 
-    csv_data.each do |row|
-      import_fight_row(row, results)
-    end
+    # Import from primary source
+    import_from_source(fetch_remote_csv_data, results)
+
+    # Import from supplemental source
+    import_from_source(fetch_supplemental_csv_data, results)
 
     log_failed_imports(results[:failed]) if results[:failed].any?
     results[:imported]
+  end
+
+  def import_from_source(csv_data, results)
+    csv_data.each do |row|
+      import_fight_row(row, results)
+    end
   end
 
   private
 
   def preload_events
     @events_cache = Event.all.index_by(&:name)
-  end
-
-  def parse_csv_data
-    response = fetch_csv_data
-    CSV.parse(response.body, headers: true)
-  end
-
-  def fetch_csv_data
-    Faraday.get(CSV_URL)
-  rescue Faraday::Error => e
-    raise ImportError, "Failed to fetch CSV data: #{e.message}"
   end
 
   def import_fight_row(row, results)

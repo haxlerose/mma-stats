@@ -75,6 +75,34 @@ function splitFighters(bout: string): { fighter1: string; fighter2: string } | n
   };
 }
 
+function getFighterByName(fight: Fight, name: string): { id: number; name: string } | null {
+  if (!fight.fight_stats) return null;
+  
+  // Find unique fighters in fight_stats
+  const fightersMap = new Map<number, { id: number; name: string }>();
+  
+  fight.fight_stats.forEach(stat => {
+    if (stat.fighter_id && !fightersMap.has(stat.fighter_id)) {
+      const fighterName = stat.fighter?.name || stat.fighter_name || '';
+      if (fighterName) {
+        fightersMap.set(stat.fighter_id, {
+          id: stat.fighter_id,
+          name: fighterName
+        });
+      }
+    }
+  });
+  
+  // Find fighter by name (case insensitive)
+  for (const fighter of fightersMap.values()) {
+    if (fighter.name.toLowerCase() === name.toLowerCase()) {
+      return fighter;
+    }
+  }
+  
+  return null;
+}
+
 export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
   const bout = fight.bout || 'Fight details unavailable';
   const method = fight.method || 'Method TBD';
@@ -103,6 +131,10 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
   const loserName = hasWinner && fighters 
     ? (winner === fighters.fighter1 ? fighters.fighter2 : fighters.fighter1)
     : null;
+    
+  // Get fighter information from fight_stats
+  const winnerInfo = winnerName ? getFighterByName(fight, winnerName) : null;
+  const loserInfo = loserName ? getFighterByName(fight, loserName) : null;
 
   return (
     <article 
@@ -136,7 +168,17 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
                     >
                       WIN
                     </div>
-                    <span className="text-lg font-semibold text-gray-900">{winnerName}</span>
+                    {winnerInfo ? (
+                      <Link 
+                        href={`/fighters/${winnerInfo.id}`}
+                        className="text-lg font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {winnerName}
+                      </Link>
+                    ) : (
+                      <span className="text-lg font-semibold text-gray-900">{winnerName}</span>
+                    )}
                   </div>
                   
                   {/* VS */}
@@ -144,7 +186,17 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
                   
                   {/* Loser */}
                   <div className="flex items-center gap-3">
-                    <span className="text-lg font-semibold text-gray-900">{loserName}</span>
+                    {loserInfo ? (
+                      <Link 
+                        href={`/fighters/${loserInfo.id}`}
+                        className="text-lg font-semibold text-gray-900 hover:text-blue-600 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {loserName}
+                      </Link>
+                    ) : (
+                      <span className="text-lg font-semibold text-gray-900">{loserName}</span>
+                    )}
                     <div 
                       data-testid="loser-badge"
                       className="px-3 py-1 bg-red-100 text-red-800 border border-red-300 rounded-md font-bold text-sm"
@@ -164,7 +216,35 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
                     </div>
                   )}
                   <h3 className="text-lg font-semibold text-gray-900 break-words">
-                    {bout}
+                    {fighters ? (
+                      <>
+                        {getFighterByName(fight, fighters.fighter1) ? (
+                          <Link 
+                            href={`/fighters/${getFighterByName(fight, fighters.fighter1)!.id}`}
+                            className="hover:text-blue-600 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {fighters.fighter1}
+                          </Link>
+                        ) : (
+                          <span>{fighters.fighter1}</span>
+                        )}
+                        <span className="mx-2">vs.</span>
+                        {getFighterByName(fight, fighters.fighter2) ? (
+                          <Link 
+                            href={`/fighters/${getFighterByName(fight, fighters.fighter2)!.id}`}
+                            className="hover:text-blue-600 hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {fighters.fighter2}
+                          </Link>
+                        ) : (
+                          <span>{fighters.fighter2}</span>
+                        )}
+                      </>
+                    ) : (
+                      bout
+                    )}
                   </h3>
                 </div>
                 

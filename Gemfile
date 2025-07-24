@@ -28,6 +28,7 @@ gem "rack-cors"
 
 gem "csv"
 gem "faraday"
+gem "nokogiri"
 
 group :development, :test do
   gem "brakeman", require: false

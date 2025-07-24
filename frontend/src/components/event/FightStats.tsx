@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Fight, FightStat } from '@/types/api';
 
 interface FightStatsProps {
@@ -184,8 +185,17 @@ export function FightStats({ fight }: FightStatsProps) {
           <tbody className="divide-y divide-gray-100">
             {fighterTotals.map((fighterData, index) => (
               <tr key={index} className="hover:bg-gray-50">
-                <td className="p-3 font-medium text-gray-900">
-                  {fighterData.fighter?.name || `Fighter ${index + 1}`}
+                <td className="p-3 font-medium">
+                  {fighterData.fighter ? (
+                    <Link 
+                      href={`/fighters/${fighterData.fighter.id}`}
+                      className="text-gray-900 hover:text-blue-600 hover:underline"
+                    >
+                      {fighterData.fighter.name}
+                    </Link>
+                  ) : (
+                    <span className="text-gray-900">{`Fighter ${index + 1}`}</span>
+                  )}
                 </td>
                 {statDisplays.map(display => (
                   <td key={display.key} className="p-2 text-center text-sm text-gray-700">
@@ -202,8 +212,17 @@ export function FightStats({ fight }: FightStatsProps) {
       <div data-testid="fight-totals-mobile" className="block md:hidden space-y-4">
         {fighterTotals.map((fighterData, fighterIndex) => (
           <div key={fighterIndex} className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-semibold text-gray-900 mb-3">
-              {fighterData.fighter?.name || `Fighter ${fighterIndex + 1}`}
+            <h4 className="font-semibold mb-3">
+              {fighterData.fighter ? (
+                <Link 
+                  href={`/fighters/${fighterData.fighter.id}`}
+                  className="text-gray-900 hover:text-blue-600 hover:underline"
+                >
+                  {fighterData.fighter.name}
+                </Link>
+              ) : (
+                <span className="text-gray-900">{`Fighter ${fighterIndex + 1}`}</span>
+              )}
             </h4>
             <div className="grid grid-cols-3 gap-4">
               {statDisplays.map(display => (
@@ -260,8 +279,17 @@ export function FightStats({ fight }: FightStatsProps) {
                           const roundStat = fighter.rounds[round];
                           return (
                             <tr key={index} className="hover:bg-gray-50">
-                              <td className="p-2 font-medium text-gray-900 text-sm">
-                                {fighter.fighter?.name || `Fighter ${index + 1}`}
+                              <td className="p-2 font-medium text-sm">
+                                {fighter.fighter ? (
+                                  <Link 
+                                    href={`/fighters/${fighter.fighter.id}`}
+                                    className="text-gray-900 hover:text-blue-600 hover:underline"
+                                  >
+                                    {fighter.fighter.name}
+                                  </Link>
+                                ) : (
+                                  <span className="text-gray-900">{`Fighter ${index + 1}`}</span>
+                                )}
                               </td>
                               {statDisplays.map(display => (
                                 <td key={display.key} className="p-2 text-center text-xs text-gray-700">

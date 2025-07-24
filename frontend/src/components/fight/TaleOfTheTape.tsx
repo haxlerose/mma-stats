@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Fight, Fighter } from '@/types/api';
 
 interface TaleOfTheTapeProps {
@@ -89,13 +90,23 @@ export function TaleOfTheTape({ fight }: TaleOfTheTapeProps) {
         {/* Fighter Names */}
         <div className="grid grid-cols-3 mb-6">
           <div className="text-right pr-4">
-            <div className="text-lg font-bold text-blue-600">{fighter1.name}</div>
+            <Link 
+              href={`/fighters/${fighter1.id}`}
+              className="text-lg font-bold text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              {fighter1.name}
+            </Link>
           </div>
           <div className="text-center">
             <span className="text-gray-700 font-medium">vs</span>
           </div>
           <div className="text-left pl-4">
-            <div className="text-lg font-bold text-red-600">{fighter2.name}</div>
+            <Link 
+              href={`/fighters/${fighter2.id}`}
+              className="text-lg font-bold text-red-600 hover:text-red-800 hover:underline"
+            >
+              {fighter2.name}
+            </Link>
           </div>
         </div>
         

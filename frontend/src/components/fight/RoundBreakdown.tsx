@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Fight, FightStat } from '@/types/api';
 
 interface RoundBreakdownProps {
@@ -70,10 +71,12 @@ function StatRow({
   );
 }
 
-function RoundCard({ roundStats, fighter1Name, fighter2Name }: {
+function RoundCard({ roundStats, fighter1Name, fighter2Name, fighter1Id, fighter2Id }: {
   roundStats: RoundStats;
   fighter1Name: string;
   fighter2Name: string;
+  fighter1Id: number;
+  fighter2Id: number;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { fighter1Stats, fighter2Stats } = roundStats;
@@ -114,9 +117,23 @@ function RoundCard({ roundStats, fighter1Name, fighter2Name }: {
           <div className="mt-4">
             {/* Fighter Names */}
             <div className="grid grid-cols-3 mb-4 text-sm font-semibold">
-              <div className="text-right pr-4 text-blue-600">{fighter1Name}</div>
+              <div className="text-right pr-4">
+                <Link 
+                  href={`/fighters/${fighter1Id}`}
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {fighter1Name}
+                </Link>
+              </div>
               <div></div>
-              <div className="text-left pl-4 text-red-600">{fighter2Name}</div>
+              <div className="text-left pl-4">
+                <Link 
+                  href={`/fighters/${fighter2Id}`}
+                  className="text-red-600 hover:text-red-800 hover:underline"
+                >
+                  {fighter2Name}
+                </Link>
+              </div>
             </div>
             
             {/* Striking Stats */}
@@ -286,6 +303,8 @@ export function RoundBreakdown({ fight }: RoundBreakdownProps) {
           roundStats={roundStats}
           fighter1Name={fighter1.name}
           fighter2Name={fighter2.name}
+          fighter1Id={fighter1.id}
+          fighter2Id={fighter2.id}
         />
       ))}
     </div>

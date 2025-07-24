@@ -10,7 +10,19 @@ function formatDate(dateString: string): string {
   
   try {
     // Parse as local date to avoid timezone issues
-    const [year, month, day] = dateString.split('-').map(Number);
+    const parts = dateString.split('-');
+    if (parts.length !== 3) {
+      return dateString; // Return original string if invalid format
+    }
+    
+    const year = parseInt(parts[0]!, 10);
+    const month = parseInt(parts[1]!, 10);
+    const day = parseInt(parts[2]!, 10);
+    
+    if (isNaN(year) || isNaN(month) || isNaN(day)) {
+      return dateString; // Return original string if invalid numbers
+    }
+    
     const date = new Date(year, month - 1, day); // month is 0-indexed
     
     // Check if date is valid

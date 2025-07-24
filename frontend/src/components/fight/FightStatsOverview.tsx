@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Fight, FightStat } from '@/types/api';
 
 interface FightStatsOverviewProps {
@@ -170,14 +171,24 @@ export function FightStatsOverview({ fight }: FightStatsOverviewProps) {
       
       {/* Fighter Names */}
       <div className="grid grid-cols-5 mb-6">
-        <div className="text-right text-blue-600 font-bold pr-2">
-          {fighter1.name}
+        <div className="text-right pr-2">
+          <Link 
+            href={`/fighters/${fighter1.id}`}
+            className="text-blue-600 font-bold hover:text-blue-800 hover:underline"
+          >
+            {fighter1.name}
+          </Link>
         </div>
         <div className="col-span-3 text-center text-gray-700 font-medium">
           vs
         </div>
-        <div className="text-left text-red-600 font-bold pl-2">
-          {fighter2.name}
+        <div className="text-left pl-2">
+          <Link 
+            href={`/fighters/${fighter2.id}`}
+            className="text-red-600 font-bold hover:text-red-800 hover:underline"
+          >
+            {fighter2.name}
+          </Link>
         </div>
       </div>
       

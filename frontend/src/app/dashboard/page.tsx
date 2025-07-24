@@ -25,7 +25,7 @@ export default function DashboardPage() {
           apiClient.events.list(),
           apiClient.fighters.spotlight()
         ]);
-        
+
         // Get the 8 most recent events for desktop (API returns them date ordered)
         setRecentEvents(eventsResponse.events.slice(0, 8));
         setFeaturedFighters(spotlightFighters);
