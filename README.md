@@ -96,18 +96,18 @@ bin/brakeman           # Security analysis
 - **Purpose**: UFC event storage with unique constraints
 - **Columns**: id, name (unique), date, location, timestamps
 - **Indexes**: Unique on name, DESC on date for chronological queries
-- **Relationships**: 
+- **Relationships**:
   - `has_many :fights` (dependent destroy)
 - **Validations**: name (presence, uniqueness), date/location (presence)
 
 #### **Fighter**
 - **Purpose**: Fighter profiles with physical attributes and search optimization
 - **Columns**: id, name (not null), height_in_inches, reach_in_inches, birth_date, timestamps
-- **Advanced Indexing**: 
+- **Advanced Indexing**:
   - Standard btree on name
   - Functional index LOWER(name) for case-insensitive sorting
   - GIN trigram index for fuzzy name search
-- **Relationships**: 
+- **Relationships**:
   - `has_many :fight_stats`
   - `has_many :fights` (through fight_stats)
 - **Scopes**: alphabetical, search(query), with_fight_details
@@ -117,7 +117,7 @@ bin/brakeman           # Security analysis
 - **Purpose**: Individual fight records within events
 - **Columns**: id, event_id (FK), bout, outcome, weight_class, method, round, time, time_format, referee, details, timestamps
 - **Foreign Keys**: event_id → events.id (with constraint)
-- **Relationships**: 
+- **Relationships**:
   - `belongs_to :event`
   - `has_many :fight_stats` (dependent destroy)
 - **Scopes**: with_full_details (eager loads event and stats)
@@ -126,15 +126,15 @@ bin/brakeman           # Security analysis
 #### **FightStat**
 - **Purpose**: Comprehensive round-by-round fighting metrics per fighter
 - **Core Columns**: id, fight_id (FK), fighter_id (FK), round, timestamps
-- **Striking Stats**: 
+- **Striking Stats**:
   - knockdowns, significant_strikes/attempted, total_strikes/attempted
   - Target-specific: head/body/leg strikes and attempts
   - Position-specific: distance/clinch/ground strikes and attempts
-- **Grappling Stats**: 
+- **Grappling Stats**:
   - takedowns/attempted, submission_attempts, reversals
   - control_time_seconds (ground control duration)
 - **Foreign Keys**: fight_id → fights.id, fighter_id → fighters.id (with constraints)
-- **Relationships**: 
+- **Relationships**:
   - `belongs_to :fight`
   - `belongs_to :fighter`
 
@@ -225,7 +225,7 @@ GET /api/v1/fighters
 GET /api/v1/fighters/:id
 ```
 - **Returns**: Fighter with complete fight history and statistics
-- **Includes**: 
+- **Includes**:
   - All fights with bout details and outcomes
   - Event information for each fight
   - Round-by-round fight statistics (strikes, takedowns, control time)
@@ -235,18 +235,11 @@ GET /api/v1/fighters/:id
 GET /api/v1/fights/:id
 ```
 - **Returns**: Complete fight details with both fighters and comprehensive statistics
-- **Includes**: 
+- **Includes**:
   - Event details (name, date, location)
   - All fighters with physical stats
   - Round-by-round statistics for each fighter
   - Fight outcome, method, referee information
-
-#### **System Health**
-```
-GET /up
-```
-- **Purpose**: Health check endpoint for load balancers
-- **Returns**: 200 (healthy) or 500 (unhealthy)
 
 ### **API Response Features**
 - **Consistent Structure**: Root-level resource wrappers
@@ -273,28 +266,9 @@ GET /up
 - Statistical visualizations with progress bars
 - Expandable fight cards with detailed statistics
 
-## Deployment
-
-The application is configured for deployment with Kamal:
-
-```bash
-bin/kamal deploy
-```
-
 ## External Data Sources
 
 - **Primary Data Source**: UFC Event Data from https://github.com/Greco1899/scrape_ufc_stats
 - **Data Format**: CSV files with comprehensive fight statistics
 - **Import Process**: Automated via specialized importer classes
 - **Data Coverage**: Events, fighters, individual fights, round-by-round statistics
-
-## Contributing
-
-1. Follow TDD practices - write tests first
-2. Ensure all tests pass
-3. Run RuboCop and fix any violations
-4. Keep commits focused and descriptive
-
-## License
-
-*To be determined*
