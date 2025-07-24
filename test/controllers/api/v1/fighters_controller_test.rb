@@ -22,7 +22,7 @@ class Api::V1::FightersControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Anderson Silva", fighters.first["name"]
     assert_equal "Michael Jordan", fighters.second["name"]
     assert_equal "Zion Clark", fighters.last["name"]
-    
+
     # Should include pagination metadata
     assert_not_nil response_data["meta"]
     assert_equal 3, response_data["meta"]["total_count"]
@@ -296,7 +296,7 @@ class Api::V1::FightersControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal 3, response_data["fighters"].length
     assert_equal 2, response_data["meta"]["current_page"]
-    
+
     # Check we have the correct fighters (alphabetically sorted)
     fighter_names = response_data["fighters"].map { |f| f["name"] }
     assert_equal ["Fighter 03", "Fighter 04", "Fighter 05"], fighter_names
@@ -315,7 +315,7 @@ class Api::V1::FightersControllerTest < ActionDispatch::IntegrationTest
 
     assert_equal 1, response_data["fighters"].length
     assert_equal "Anderson Cooper", response_data["fighters"].first["name"]
-    assert_equal 2, response_data["meta"]["total_count"] # Anderson Silva and Anderson Cooper
+    assert_equal 2, response_data["meta"]["total_count"]
     assert_equal 2, response_data["meta"]["total_pages"]
   end
 end
