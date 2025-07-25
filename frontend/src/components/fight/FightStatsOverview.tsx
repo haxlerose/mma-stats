@@ -173,7 +173,7 @@ export function FightStatsOverview({ fight }: FightStatsOverviewProps) {
       <div className="grid grid-cols-5 mb-6">
         <div className="text-right pr-2">
           <Link 
-            href={`/fighters/${fighter1.id}`}
+            href={`/fighters/${fighter1.slug}`}
             className="text-blue-600 font-bold hover:text-blue-800 hover:underline"
           >
             {fighter1.name}
@@ -184,7 +184,7 @@ export function FightStatsOverview({ fight }: FightStatsOverviewProps) {
         </div>
         <div className="text-left pl-2">
           <Link 
-            href={`/fighters/${fighter2.id}`}
+            href={`/fighters/${fighter2.slug}`}
             className="text-red-600 font-bold hover:text-red-800 hover:underline"
           >
             {fighter2.name}

@@ -17,9 +17,9 @@ function extractWinner(outcome: string, bout: string): string | null {
   
   // Handle W/L format (first fighter wins/loses)
   if (outcome === 'W/L') {
-    return fighters[0]; // First fighter wins
+    return fighters[0] || null; // First fighter wins
   } else if (outcome === 'L/W') {
-    return fighters[1]; // Second fighter wins
+    return fighters[1] || null; // Second fighter wins
   }
   
   // Handle text-based outcomes for backwards compatibility with tests
@@ -43,7 +43,7 @@ function extractWinner(outcome: string, bout: string): string | null {
     // Check for last name only patterns (e.g., "Jones wins" for "Jon Jones")
     const lastNameParts = fighter.split(' ');
     if (lastNameParts.length > 1) {
-      const lastName = lastNameParts[lastNameParts.length - 1].toLowerCase();
+      const lastName = lastNameParts[lastNameParts.length - 1]?.toLowerCase() || '';
       if (
         lowerOutcome.includes(`${lastName} wins`) ||
         lowerOutcome.includes(`${lastName} defeats`) ||
@@ -70,24 +70,26 @@ function splitFighters(bout: string): { fighter1: string; fighter2: string } | n
   }
   
   return {
-    fighter1: fighters[0],
-    fighter2: fighters[1]
+    fighter1: fighters[0] || '',
+    fighter2: fighters[1] || ''
   };
 }
 
-function getFighterByName(fight: Fight, name: string): { id: number; name: string } | null {
+function getFighterByName(fight: Fight, name: string): { id: number; name: string; slug: string } | null {
   if (!fight.fight_stats) return null;
   
   // Find unique fighters in fight_stats
-  const fightersMap = new Map<number, { id: number; name: string }>();
+  const fightersMap = new Map<number, { id: number; name: string; slug: string }>();
   
   fight.fight_stats.forEach(stat => {
     if (stat.fighter_id && !fightersMap.has(stat.fighter_id)) {
       const fighterName = stat.fighter?.name || stat.fighter_name || '';
-      if (fighterName) {
+      const fighterSlug = stat.fighter?.slug || '';
+      if (fighterName && fighterSlug) {
         fightersMap.set(stat.fighter_id, {
           id: stat.fighter_id,
-          name: fighterName
+          name: fighterName,
+          slug: fighterSlug
         });
       }
     }
@@ -170,7 +172,7 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
                     </div>
                     {winnerInfo ? (
                       <Link 
-                        href={`/fighters/${winnerInfo.id}`}
+                        href={`/fighters/${winnerInfo.slug}`}
                         className="text-lg font-semibold text-gray-900 hover:text-blue-600 hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -188,7 +190,7 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
                   <div className="flex items-center gap-3">
                     {loserInfo ? (
                       <Link 
-                        href={`/fighters/${loserInfo.id}`}
+                        href={`/fighters/${loserInfo.slug}`}
                         className="text-lg font-semibold text-gray-900 hover:text-blue-600 hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -220,7 +222,7 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
                       <>
                         {getFighterByName(fight, fighters.fighter1) ? (
                           <Link 
-                            href={`/fighters/${getFighterByName(fight, fighters.fighter1)!.id}`}
+                            href={`/fighters/${getFighterByName(fight, fighters.fighter1)!.slug}`}
                             className="hover:text-blue-600 hover:underline"
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -232,7 +234,7 @@ export function FightCard({ fight, isExpanded, onToggle }: FightCardProps) {
                         <span className="mx-2">vs.</span>
                         {getFighterByName(fight, fighters.fighter2) ? (
                           <Link 
-                            href={`/fighters/${getFighterByName(fight, fighters.fighter2)!.id}`}
+                            href={`/fighters/${getFighterByName(fight, fighters.fighter2)!.slug}`}
                             className="hover:text-blue-600 hover:underline"
                             onClick={(e) => e.stopPropagation()}
                           >

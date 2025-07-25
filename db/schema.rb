@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_21_181839) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_25_173119) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -65,9 +65,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_21_181839) do
     t.date "birth_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "slug"
     t.index "lower((name)::text)", name: "idx_fighters_name_lower"
     t.index ["name"], name: "idx_fighters_name"
     t.index ["name"], name: "idx_fighters_name_gin", opclass: :gin_trgm_ops, using: :gin
+    t.index ["slug"], name: "index_fighters_on_slug", unique: true
   end
 
   create_table "fights", force: :cascade do |t|

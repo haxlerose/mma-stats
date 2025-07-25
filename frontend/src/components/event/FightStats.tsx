@@ -188,7 +188,7 @@ export function FightStats({ fight }: FightStatsProps) {
                 <td className="p-3 font-medium">
                   {fighterData.fighter ? (
                     <Link 
-                      href={`/fighters/${fighterData.fighter.id}`}
+                      href={`/fighters/${fighterData.fighter.slug}`}
                       className="text-gray-900 hover:text-blue-600 hover:underline"
                     >
                       {fighterData.fighter.name}
@@ -215,7 +215,7 @@ export function FightStats({ fight }: FightStatsProps) {
             <h4 className="font-semibold mb-3">
               {fighterData.fighter ? (
                 <Link 
-                  href={`/fighters/${fighterData.fighter.id}`}
+                  href={`/fighters/${fighterData.fighter.slug}`}
                   className="text-gray-900 hover:text-blue-600 hover:underline"
                 >
                   {fighterData.fighter.name}
@@ -282,7 +282,7 @@ export function FightStats({ fight }: FightStatsProps) {
                               <td className="p-2 font-medium text-sm">
                                 {fighter.fighter ? (
                                   <Link 
-                                    href={`/fighters/${fighter.fighter.id}`}
+                                    href={`/fighters/${fighter.fighter.slug}`}
                                     className="text-gray-900 hover:text-blue-600 hover:underline"
                                   >
                                     {fighter.fighter.name}

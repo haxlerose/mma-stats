@@ -30,9 +30,9 @@ export function FighterCard({ fighter, highlightStat }: FighterCardProps) {
   const getInitials = (name: string) => {
     const names = name.trim().split(' ');
     if (names.length === 1) {
-      return names[0].substring(0, 2).toUpperCase();
+      return names[0]?.substring(0, 2).toUpperCase() || '';
     }
-    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+    return ((names[0]?.charAt(0) || '') + (names[names.length - 1]?.charAt(0) || '')).toUpperCase();
   };
 
   return (
@@ -95,7 +95,7 @@ export function FighterCard({ fighter, highlightStat }: FighterCardProps) {
           </div>
         )}
 
-        <Link href={`/fighters/${fighter.id}`}>
+        <Link href={`/fighters/${fighter.slug}`}>
           <Button variant="outline" size="sm" className="w-full">
             View Profile →
           </Button>

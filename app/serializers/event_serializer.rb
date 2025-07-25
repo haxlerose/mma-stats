@@ -52,7 +52,12 @@ class EventSerializer
                        control_time_seconds],
               include: {
                 fighter: {
-                  only: %i[id name height_in_inches reach_in_inches birth_date]
+                  only: %i[id
+                           slug
+                           name
+                           height_in_inches
+                           reach_in_inches
+                           birth_date]
                 }
               }
             }

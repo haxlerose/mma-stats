@@ -91,7 +91,7 @@ export function TaleOfTheTape({ fight }: TaleOfTheTapeProps) {
         <div className="grid grid-cols-3 mb-6">
           <div className="text-right pr-4">
             <Link 
-              href={`/fighters/${fighter1.id}`}
+              href={`/fighters/${fighter1.slug}`}
               className="text-lg font-bold text-blue-600 hover:text-blue-800 hover:underline"
             >
               {fighter1.name}
@@ -102,7 +102,7 @@ export function TaleOfTheTape({ fight }: TaleOfTheTapeProps) {
           </div>
           <div className="text-left pl-4">
             <Link 
-              href={`/fighters/${fighter2.id}`}
+              href={`/fighters/${fighter2.slug}`}
               className="text-lg font-bold text-red-600 hover:text-red-800 hover:underline"
             >
               {fighter2.name}

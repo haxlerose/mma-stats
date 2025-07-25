@@ -23,7 +23,11 @@ class Api::V1::FightersController < ApplicationController
   end
 
   def show
-    fighter = Fighter.with_fight_details.find(params[:id])
+    fighter = if params[:id].match?(/\A\d+\z/)
+                Fighter.with_fight_details.find(params[:id])
+              else
+                Fighter.with_fight_details.find_by!(slug: params[:id])
+              end
     render json: { fighter: FighterSerializer.with_fight_details(fighter) }
   end
 end

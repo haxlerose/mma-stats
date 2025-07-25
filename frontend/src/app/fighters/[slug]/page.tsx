@@ -12,7 +12,7 @@ import { PerformanceMetrics } from '@/components/fighter/PerformanceMetrics';
 
 export default function FighterDetailPage() {
   const params = useParams();
-  const fighterId = parseInt(params.id as string);
+  const fighterSlug = params.slug as string;
   
   const [fighter, setFighter] = useState<Fighter | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +23,7 @@ export default function FighterDetailPage() {
     setError(null);
     
     try {
-      const fighterData = await apiClient.fighters.get(fighterId);
+      const fighterData = await apiClient.fighters.get(fighterSlug);
       setFighter(fighterData);
     } catch (err) {
       if (err instanceof ApiClientError || (err as any)?.name === 'ApiClientError') {
@@ -56,10 +56,10 @@ export default function FighterDetailPage() {
   };
 
   useEffect(() => {
-    if (fighterId) {
+    if (fighterSlug) {
       fetchFighter();
     }
-  }, [fighterId]);
+  }, [fighterSlug]);
 
   const handleRetry = () => {
     fetchFighter();

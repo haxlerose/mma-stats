@@ -141,9 +141,10 @@ export const apiClient = {
     
     /**
      * Get specific fighter with complete fight history and statistics
+     * @param idOrSlug - Fighter ID or slug
      */
-    get: (id: number): Promise<Fighter> =>
-      apiFetch<FighterResponse>(`/fighters/${id}`).then(response => response.fighter),
+    get: (idOrSlug: number | string): Promise<Fighter> =>
+      apiFetch<FighterResponse>(`/fighters/${idOrSlug}`).then(response => response.fighter),
       
     /**
      * Get top 3 fighters with longest current win streaks (active fighters only)

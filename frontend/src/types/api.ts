@@ -15,6 +15,7 @@ export interface Event {
 export interface Fighter {
   id: number;
   name: string;
+  slug: string;
   height_in_inches: number | null;
   reach_in_inches: number | null;
   birth_date: string | null; // ISO date string
@@ -156,6 +157,7 @@ export interface StatisticalHighlight {
   fighter: {
     id: number;
     name: string;
+    slug: string;
     height_in_inches: number | null;
     reach_in_inches: number | null;
     birth_date: string | null;

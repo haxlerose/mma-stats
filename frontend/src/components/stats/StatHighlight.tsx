@@ -202,7 +202,7 @@ export function StatHighlights({
         const fighterName = highlight.fighter?.name || "No Data";
         const statValue = formatStatValue(highlight.value, highlight.category);
         const fighterUrl = highlight.fighter 
-          ? `/fighters/${highlight.fighter.id}` 
+          ? `/fighters/${highlight.fighter.slug}` 
           : "#";
 
         return (

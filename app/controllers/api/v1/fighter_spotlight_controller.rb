@@ -13,6 +13,7 @@ module Api
 
           {
             id: fighter.id,
+            slug: fighter.slug,
             name: fighter.name,
             height_in_inches: fighter.height_in_inches,
             reach_in_inches: fighter.reach_in_inches,

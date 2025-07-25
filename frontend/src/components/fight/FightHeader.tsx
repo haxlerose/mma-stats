@@ -7,8 +7,8 @@ interface FightHeaderProps {
 }
 
 function getWinnerAndLoser(fight: Fight): { 
-  winner: { name: string; id: number } | null; 
-  loser: { name: string; id: number } | null; 
+  winner: { name: string; id: number; slug: string } | null; 
+  loser: { name: string; id: number; slug: string } | null; 
   isDraw: boolean;
   isNoContest: boolean;
 } {
@@ -24,15 +24,15 @@ function getWinnerAndLoser(fight: Fight): {
   if (outcomes.length === 2) {
     if (outcomes[0] === 'W' && outcomes[1] === 'L') {
       return { 
-        winner: fighter1 ? { name: fighter1.name, id: fighter1.id } : null, 
-        loser: fighter2 ? { name: fighter2.name, id: fighter2.id } : null,
+        winner: fighter1 ? { name: fighter1.name, id: fighter1.id, slug: fighter1.slug } : null, 
+        loser: fighter2 ? { name: fighter2.name, id: fighter2.id, slug: fighter2.slug } : null,
         isDraw: false,
         isNoContest: false
       };
     } else if (outcomes[0] === 'L' && outcomes[1] === 'W') {
       return { 
-        winner: fighter2 ? { name: fighter2.name, id: fighter2.id } : null, 
-        loser: fighter1 ? { name: fighter1.name, id: fighter1.id } : null,
+        winner: fighter2 ? { name: fighter2.name, id: fighter2.id, slug: fighter2.slug } : null, 
+        loser: fighter1 ? { name: fighter1.name, id: fighter1.id, slug: fighter1.slug } : null,
         isDraw: false,
         isNoContest: false
       };
@@ -73,7 +73,7 @@ export function FightHeader({ fight }: FightHeaderProps) {
         <div className="flex items-center justify-center gap-4 mb-4">
           <div className="flex-1 text-right">
             <Link 
-              href={`/fighters/${fighter1.id}`}
+              href={`/fighters/${fighter1.slug}`}
               className={`text-2xl font-bold hover:text-blue-600 transition-colors ${
                 winner?.id === fighter1.id ? 'text-green-600' : 
                 loser?.id === fighter1.id ? 'text-red-600' : 
@@ -96,7 +96,7 @@ export function FightHeader({ fight }: FightHeaderProps) {
           
           <div className="flex-1 text-left">
             <Link 
-              href={`/fighters/${fighter2.id}`}
+              href={`/fighters/${fighter2.slug}`}
               className={`text-2xl font-bold hover:text-blue-600 transition-colors ${
                 winner?.id === fighter2.id ? 'text-green-600' : 
                 loser?.id === fighter2.id ? 'text-red-600' : 

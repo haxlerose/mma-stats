@@ -5,6 +5,9 @@ class Fighter < ApplicationRecord
   has_many :fights, -> { distinct }, through: :fight_stats
 
   validates :name, presence: true
+  validates :slug, presence: true, uniqueness: true
+
+  before_validation :generate_slug, if: :name_changed?
 
   scope :alphabetical, -> { order(Arel.sql("LOWER(name)")) }
   scope :search,
@@ -93,6 +96,7 @@ class Fighter < ApplicationRecord
           e.date as event_date,
           e.name as event_name,
           fig.name as fighter_name,
+          fig.slug as fighter_slug,
           fig.height_in_inches,
           fig.reach_in_inches,
           fig.birth_date,
@@ -117,6 +121,7 @@ class Fighter < ApplicationRecord
         SELECT
           fighter_id,
           fighter_name,
+          fighter_slug,
           height_in_inches,
           reach_in_inches,
           birth_date,
@@ -139,11 +144,12 @@ class Fighter < ApplicationRecord
           END) as last_fight_outcome
         FROM fight_results
         WHERE fight_sequence = 1 AND won_fight = true  -- Only fighters who won last fight
-        GROUP BY fighter_id, fighter_name, height_in_inches, reach_in_inches, birth_date
+        GROUP BY fighter_id, fighter_name, fighter_slug, height_in_inches, reach_in_inches, birth_date
       )
       SELECT
         fighter_id,
         fighter_name,
+        fighter_slug,
         height_in_inches,
         reach_in_inches,
         birth_date,
@@ -215,6 +221,7 @@ class Fighter < ApplicationRecord
     new(
       id: row["fighter_id"],
       name: row["fighter_name"],
+      slug: row["fighter_slug"],
       height_in_inches: row["height_in_inches"],
       reach_in_inches: row["reach_in_inches"],
       birth_date: row["birth_date"]
@@ -399,6 +406,7 @@ class Fighter < ApplicationRecord
       WITH fighter_fight_totals AS (
         SELECT
           fighters.id,
+          fighters.slug,
           fighters.name,
           fighters.height_in_inches,
           fighters.reach_in_inches,
@@ -416,18 +424,19 @@ class Fighter < ApplicationRecord
         FROM fighters
         JOIN fight_stats ON fight_stats.fighter_id = fighters.id
         JOIN fights ON fights.id = fight_stats.fight_id
-        GROUP BY fighters.id, fighters.name, fighters.height_in_inches,
+        GROUP BY fighters.id, fighters.slug, fighters.name, fighters.height_in_inches,
                  fighters.reach_in_inches, fighters.birth_date, fights.id
       )
       SELECT
         id,
+        slug,
         name,
         height_in_inches,
         reach_in_inches,
         birth_date,
         (SUM(fight_strikes) / (SUM(fight_minutes) / 15.0)) as strikes_per_15_min
       FROM fighter_fight_totals
-      GROUP BY id, name, height_in_inches, reach_in_inches, birth_date
+      GROUP BY id, slug, name, height_in_inches, reach_in_inches, birth_date
       HAVING COUNT(fight_id) >= 5
         AND SUM(fight_attempts) >= 350
       ORDER BY strikes_per_15_min DESC
@@ -445,6 +454,7 @@ class Fighter < ApplicationRecord
       WITH fighter_fight_totals AS (
         SELECT
           fighters.id,
+          fighters.slug,
           fighters.name,
           fighters.height_in_inches,
           fighters.reach_in_inches,
@@ -461,18 +471,19 @@ class Fighter < ApplicationRecord
         FROM fighters
         JOIN fight_stats ON fight_stats.fighter_id = fighters.id
         JOIN fights ON fights.id = fight_stats.fight_id
-        GROUP BY fighters.id, fighters.name, fighters.height_in_inches,
+        GROUP BY fighters.id, fighters.slug, fighters.name, fighters.height_in_inches,
                  fighters.reach_in_inches, fighters.birth_date, fights.id
       )
       SELECT
         id,
+        slug,
         name,
         height_in_inches,
         reach_in_inches,
         birth_date,
         (SUM(fight_submissions) / (SUM(fight_minutes) / 15.0)) as submission_attempts_per_15_min
       FROM fighter_fight_totals
-      GROUP BY id, name, height_in_inches, reach_in_inches, birth_date
+      GROUP BY id, slug, name, height_in_inches, reach_in_inches, birth_date
       HAVING COUNT(fight_id) >= 5
       ORDER BY submission_attempts_per_15_min DESC
       LIMIT 1
@@ -489,6 +500,7 @@ class Fighter < ApplicationRecord
       WITH fighter_fight_totals AS (
         SELECT
           fighters.id,
+          fighters.slug,
           fighters.name,
           fighters.height_in_inches,
           fighters.reach_in_inches,
@@ -506,18 +518,19 @@ class Fighter < ApplicationRecord
         FROM fighters
         JOIN fight_stats ON fight_stats.fighter_id = fighters.id
         JOIN fights ON fights.id = fight_stats.fight_id
-        GROUP BY fighters.id, fighters.name, fighters.height_in_inches,
+        GROUP BY fighters.id, fighters.slug, fighters.name, fighters.height_in_inches,
                  fighters.reach_in_inches, fighters.birth_date, fights.id
       )
       SELECT
         id,
+        slug,
         name,
         height_in_inches,
         reach_in_inches,
         birth_date,
         (SUM(fight_takedowns) / (SUM(fight_minutes) / 15.0)) as takedowns_per_15_min
       FROM fighter_fight_totals
-      GROUP BY id, name, height_in_inches, reach_in_inches, birth_date
+      GROUP BY id, slug, name, height_in_inches, reach_in_inches, birth_date
       HAVING COUNT(fight_id) >= 5
         AND SUM(fight_takedown_attempts) >= 20
       ORDER BY takedowns_per_15_min DESC
@@ -535,6 +548,7 @@ class Fighter < ApplicationRecord
       WITH fighter_fight_totals AS (
         SELECT
           fighters.id,
+          fighters.slug,
           fighters.name,
           fighters.height_in_inches,
           fighters.reach_in_inches,
@@ -551,18 +565,19 @@ class Fighter < ApplicationRecord
         FROM fighters
         JOIN fight_stats ON fight_stats.fighter_id = fighters.id
         JOIN fights ON fights.id = fight_stats.fight_id
-        GROUP BY fighters.id, fighters.name, fighters.height_in_inches,
+        GROUP BY fighters.id, fighters.slug, fighters.name, fighters.height_in_inches,
                  fighters.reach_in_inches, fighters.birth_date, fights.id
       )
       SELECT
         id,
+        slug,
         name,
         height_in_inches,
         reach_in_inches,
         birth_date,
         (SUM(fight_knockdowns) / (SUM(fight_minutes) / 15.0)) as knockdowns_per_15_min
       FROM fighter_fight_totals
-      GROUP BY id, name, height_in_inches, reach_in_inches, birth_date
+      GROUP BY id, slug, name, height_in_inches, reach_in_inches, birth_date
       HAVING COUNT(fight_id) >= 5
       ORDER BY knockdowns_per_15_min DESC
       LIMIT 1
@@ -591,6 +606,7 @@ class Fighter < ApplicationRecord
     {
       fighter: {
         id: row["id"],
+        slug: row["slug"],
         name: row["name"],
         height_in_inches: row["height_in_inches"],
         reach_in_inches: row["reach_in_inches"],
@@ -598,6 +614,15 @@ class Fighter < ApplicationRecord
       },
       value: row[stat_column].to_f.round(2)
     }
+  end
+
+  # Find by ID or slug
+  def self.find_by_id_or_slug(identifier)
+    if identifier.match?(/\A\d+\z/)
+      find(identifier)
+    else
+      find_by!(slug: identifier)
+    end
   end
 
   private
@@ -745,5 +770,26 @@ class Fighter < ApplicationRecord
     name1.downcase == name2.downcase ||
       name1.downcase.include?(name2.downcase) ||
       name2.downcase.include?(name1.downcase)
+  end
+
+  # Generate a URL-friendly slug from the fighter's name
+  def generate_slug
+    return if name.blank?
+
+    base_slug = name.downcase
+                    .strip
+                    .gsub(/[^a-z0-9\s-]/, "")
+                    .gsub(/\s+/, "-")
+                    .squeeze("-")
+                    .gsub(/^-|-$/, "")
+
+    # Ensure uniqueness by appending a number if necessary
+    self.slug = base_slug
+    counter = 1
+
+    while Fighter.where.not(id: id).exists?(slug: slug)
+      self.slug = "#{base_slug}-#{counter}"
+      counter += 1
+    end
   end
 end

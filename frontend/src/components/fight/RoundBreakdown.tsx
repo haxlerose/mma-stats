@@ -71,12 +71,14 @@ function StatRow({
   );
 }
 
-function RoundCard({ roundStats, fighter1Name, fighter2Name, fighter1Id, fighter2Id }: {
+function RoundCard({ roundStats, fighter1Name, fighter2Name, fighter1Id, fighter2Id, fighter1Slug, fighter2Slug }: {
   roundStats: RoundStats;
   fighter1Name: string;
   fighter2Name: string;
   fighter1Id: number;
   fighter2Id: number;
+  fighter1Slug: string;
+  fighter2Slug: string;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { fighter1Stats, fighter2Stats } = roundStats;
@@ -119,7 +121,7 @@ function RoundCard({ roundStats, fighter1Name, fighter2Name, fighter1Id, fighter
             <div className="grid grid-cols-3 mb-4 text-sm font-semibold">
               <div className="text-right pr-4">
                 <Link 
-                  href={`/fighters/${fighter1Id}`}
+                  href={`/fighters/${fighter1Slug}`}
                   className="text-blue-600 hover:text-blue-800 hover:underline"
                 >
                   {fighter1Name}
@@ -128,7 +130,7 @@ function RoundCard({ roundStats, fighter1Name, fighter2Name, fighter1Id, fighter
               <div></div>
               <div className="text-left pl-4">
                 <Link 
-                  href={`/fighters/${fighter2Id}`}
+                  href={`/fighters/${fighter2Slug}`}
                   className="text-red-600 hover:text-red-800 hover:underline"
                 >
                   {fighter2Name}
@@ -305,6 +307,8 @@ export function RoundBreakdown({ fight }: RoundBreakdownProps) {
           fighter2Name={fighter2.name}
           fighter1Id={fighter1.id}
           fighter2Id={fighter2.id}
+          fighter1Slug={fighter1.slug}
+          fighter2Slug={fighter2.slug}
         />
       ))}
     </div>

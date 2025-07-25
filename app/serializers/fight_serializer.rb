@@ -30,6 +30,7 @@ class FightSerializer
     @fight.fighters.map do |fighter|
       fighter.as_json(
         only: %i[id
+                 slug
                  name
                  height_in_inches
                  reach_in_inches
@@ -45,6 +46,7 @@ class FightSerializer
   def build_stat_attributes(stat)
     {
       fighter_id: stat.fighter.id,
+      fighter_slug: stat.fighter.slug,
       fighter_name: stat.fighter.name,
       round: stat.round,
       knockdowns: stat.knockdowns

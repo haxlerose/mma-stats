@@ -59,6 +59,7 @@ export function LocationDropdown({
       }, 300);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [searchTerm, onFilter]);
 
   // Close dropdown when clicking outside
