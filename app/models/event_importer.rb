@@ -3,6 +3,8 @@
 class EventImporter
   include MultiSourceCsvImport
 
+  class ImportError < StandardError; end
+
   CSV_URL = "https://raw.githubusercontent.com/Greco1899/scrape_ufc_stats/refs/heads/main/ufc_event_details.csv"
 
   def import

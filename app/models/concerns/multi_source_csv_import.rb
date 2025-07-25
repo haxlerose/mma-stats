@@ -10,8 +10,13 @@ module MultiSourceCsvImport
     response = Faraday.get(self.class::CSV_URL)
     CSV.parse(response.body, headers: true)
   rescue Faraday::Error => e
-    Rails.logger.warn "Failed to fetch remote CSV data: #{e.message}"
-    []
+    if defined?(self.class::ImportError)
+      raise self.class::ImportError,
+            "Failed to fetch remote CSV data: #{e.message}"
+    else
+      Rails.logger.warn "Failed to fetch remote CSV data: #{e.message}"
+      []
+    end
   end
 
   def fetch_supplemental_csv_data

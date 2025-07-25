@@ -4,7 +4,7 @@
 class DataSeeder
   class << self
     def import_all
-      puts "  Starting data import from CSV files..."
+      Rails.logger.info "  Starting data import from CSV files..."
 
       # Import in dependency order
       import_events
@@ -12,7 +12,7 @@ class DataSeeder
       import_fights
       import_fight_stats
 
-      puts "  Data import completed successfully!"
+      Rails.logger.info "  Data import completed successfully!"
 
       # Return statistics
       {
@@ -56,27 +56,27 @@ class DataSeeder
     private
 
     def import_events
-      puts "  Importing events..."
+      Rails.logger.info "  Importing events..."
       EventImporter.new.import
-      puts "  Events imported successfully"
+      Rails.logger.info "  Events imported successfully"
     end
 
     def import_fighters
-      puts "  Importing fighters..."
+      Rails.logger.info "  Importing fighters..."
       FighterImporter.new.import
-      puts "  Fighters imported successfully"
+      Rails.logger.info "  Fighters imported successfully"
     end
 
     def import_fights
-      puts "  Importing fights..."
+      Rails.logger.info "  Importing fights..."
       FightImporter.new.import
-      puts "  Fights imported successfully"
+      Rails.logger.info "  Fights imported successfully"
     end
 
     def import_fight_stats
-      puts "  Importing fight stats..."
+      Rails.logger.info "  Importing fight stats..."
       FightStatImporter.new.import
-      puts "  Fight stats imported successfully"
+      Rails.logger.info "  Fight stats imported successfully"
     end
 
     def current_counts

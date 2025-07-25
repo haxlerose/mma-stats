@@ -1,0 +1,593 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://ufcstats.com/fight-details/3c00f34f20c8a189
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - Faraday v2.13.2
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx/1.10.1
+      Date:
+      - Fri, 25 Jul 2025 18:45:22 GMT
+      Content-Type:
+      - text/html;charset=utf-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Vary:
+      - Accept-Encoding
+      Status:
+      - 200 OK
+      Cache-Control:
+      - public, max-age=900
+      X-Xss-Protection:
+      - 1; mode=block
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+    body:
+      encoding: ASCII-8BIT
+      string: "<!DOCTYPE html>\n<!--[if lt IE 7]>      <html class=\"no-js lt-ie9
+        lt-ie8 lt-ie7\"> <![endif]-->\n<!--[if IE 7]>         <html class=\"no-js
+        lt-ie9 lt-ie8\"> <![endif]-->\n<!--[if IE 8]>         <html class=\"no-js
+        ie8 lt-ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html class=\"no-js\">
+        <!--<![endif]-->\n<head>\n  <meta charset=\"utf-8\">\n  <meta http-equiv=\"X-UA-Compatible\"
+        content=\"IE=edge\">\n  <title>\n    Stats | UFC\n  </title>\n  <meta name=\"description\"
+        content=\"\">\n  <meta name=\"viewport\" content=\"\">\n  <link rel=\"stylesheet\"
+        href=\"/blocks/main.css?ver=312290\">\n  <script src=\"/js/vendor/modernizr-2.6.2.min.js\"></script>\n
+        \ <script>\n    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){\n
+        \   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),\n
+        \   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)\n
+        \   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');\n\n
+        \   ga('create', 'UA-2855164-1', 'auto');\n    ga('send', 'pageview');\n  </script>\n</head>\n<body
+        class=\"b-page\" data-link=\"home\">\n    <header class=\"b-head\">\n      <div
+        class=\"b-head__nav-bar\">\n  <div class=\"l-page__container\">\n    <a class=\"b-head__logo\"
+        href=\"/\">\n        <img src=\"http://1e49bc5171d173577ecd-1323f4090557a33db01577564f60846c.r80.cf1.rackcdn.com/ufc-stats-logo.png\"\n
+        \            alt=\"\">\n    </a>\n    <menu class=\"b-head__menu\">\n      \n
+        \         <li class=\"b-head__item b-head__item_state_current\">\n            <a
+        class=\"b-head__menu-link\" href=\"/statistics/events/\">\n              EVENTS
+        & FIGHTS\n            </a>\n          </li> \n      \n      \n          <li
+        class=\"b-head__item\">\n            <a class=\"b-head__menu-link\" href=\"/statistics/fighters\">\n
+        \             FIGHTERS\n            </a>\n          </li>\n      \n      \n
+        \         <li class=\"b-head__item\">\n            <a class=\"b-head__menu-link\"
+        href=\"http://statleaders.ufc.com\" target=\"_blank\">\n              STAT
+        LEADERS\n            </a>\n          </li>\n      \n    </menu>\n  </div>\n</div>\n
+        \   <div class=\"b-head__sub-nav\">\n    </div>\n\n    </header>\n    <section
+        class=\"b-statistics__section_details\">\n    <div class=\"l-page__container\">\n
+        \       \n            <h2 class=\"b-content__title\">\n  <a href=\"http://ufcstats.com/event-details/80dbeb1dd5b53e64\"
+        \ class=\"b-link\">\n\n  UFC Fight Night: Adesanya vs. Imavov\n\n   </a>\n</h2>\n<div
+        class=\"b-fight-details\">\n<div class=\"b-fight-details__persons clearfix\">\n
+        \ \n<div class=\"b-fight-details__person\">\n  <i class=\"b-fight-details__person-status
+        b-fight-details__person-status_style_green\">\n    W\n  </i>\n  <div class=\"b-fight-details__person-text\">\n
+        \   <h3 class=\"b-fight-details__person-name\">\n      <a class='b-link b-fight-details__person-link'
+        href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei Pavlovich
+        </a>\n    </h3>\n    <p class=\"b-fight-details__person-title\">\n      \n
+        \   </p>\n  </div>\n</div>\n  \n<div class=\"b-fight-details__person\">\n
+        \ <i class=\"b-fight-details__person-status b-fight-details__person-status_style_gray\">\n
+        \   L\n  </i>\n  <div class=\"b-fight-details__person-text\">\n    <h3 class=\"b-fight-details__person-name\">\n
+        \     <a class='b-link b-fight-details__person-link' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </h3>\n    <p class=\"b-fight-details__person-title\">\n
+        \     \"Bigi Boy\"\n    </p>\n  </div>\n</div>\n</div>\n<div class=\"b-fight-details__fight\">\n
+        \ <div class=\"b-fight-details__fight-head\">\n    <i class=\"b-fight-details__fight-title\">\n
+        \     \n      Heavyweight Bout\n    </i>\n  </div>\n  <div class=\"b-fight-details__content\">\n
+        \   <p class=\"b-fight-details__text\">\n      <i class=\"b-fight-details__text-item_first\">\n
+        \       <i class=\"b-fight-details__label\">\n          Method:\n\n        </i>\n\n
+        \      <i style=\"font-style: normal\"> Decision - Unanimous </i>\n      </i>\n
+        \     <i class=\"b-fight-details__text-item\">\n        <i class=\"b-fight-details__label\">\n
+        \         Round:\n        </i>\n        3\n      </i>\n      <i class=\"b-fight-details__text-item\">\n
+        \       <i class=\"b-fight-details__label\">\n          Time:\n        </i>\n
+        \       5:00\n\n      </i>\n      <i class=\"b-fight-details__text-item\">\n
+        \       <i class=\"b-fight-details__label\">\n          Time format:\n        </i>\n
+        \       3 Rnd (5-5-5)\n      </i>\n      <i class=\"b-fight-details__text-item\">\n
+        \       <i class=\"b-fight-details__label\">\n          Referee:\n        </i>\n
+        \                           <span class=\"\">\n                                Mark
+        Smith\n                            </span>\n      </i>\n    </p>\n    <p class=\"b-fight-details__text\">\n
+        \     <i class=\"b-fight-details__text-item_first\">\n        <i class=\"b-fight-details__label\">\n
+        \         Details:\n        </i>\n      </i>\n      \n      \n      \n\n          \n\n\n
+        \         \n      \n\n          \n\n\n          \n      \n\n          \n\n\n
+        \         \n      \n\n          \n\n\n          \n      \n\n          \n\n\n
+        \         \n      \n\n          \n\n\n          \n      \n\n          \n\n\n
+        \         \n      \n\n          \n\n\n          \n      \n\n          \n\n\n
+        \         \n      \n\n          \n\n\n          \n      \n\n          \n\n\n
+        \         \n      \n      \n       \n      \n          <i class=\"b-fight-details__text-item\">\n
+        \         \n\n            <span>Sal D'amato</span> \n\n            \n            \n
+        \           27 - 30.\n          </i>\n      \n          <i class=\"b-fight-details__text-item\">\n
+        \         \n\n            <span>David Lethaby</span> \n\n            \n            \n
+        \           27 - 30.\n          </i>\n      \n          <i class=\"b-fight-details__text-item\">\n
+        \         \n\n            <span>Clemens Werner</span> \n\n            \n            \n
+        \           27 - 30.\n          </i>\n      \n\n    </p>\n  </div>\n</div>\n\n
+        <section class=\"b-fight-details__section js-fight-section\">\n      <p class=\"b-fight-details__collapse-link_tot
+        \">\n        Totals\n     </p>\n    </section>\n    <section class=\"b-fight-details__section
+        js-fight-section\">\n    <table style=\"width: 745px\"  >\n      <thead class=\"b-fight-details__table-head\">\n
+        \     <tr class=\"b-fight-details__table-row\">\n        <th class=\"b-fight-details__table-col
+        l-page_align_left\">\n          Fighter\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         KD\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Sig. str.\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Sig. str. %\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Total str.\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Td\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Td %\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Sub. att\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Rev.\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Ctrl\n        </th>\n      </tr>\n      </thead>\n      <tbody class=\"b-fight-details__table-body\">\n
+        \     <tr class=\"b-fight-details__table-row\">\n  <td class=\"b-fight-details__table-col
+        l-page_align_left\">\n    <p class=\"b-fight-details__table-text\">\n      <a
+        class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei
+        Pavlovich </a>\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      25 of 60\n    </p>\n
+        \   <p class=\"b-fight-details__table-text\">\n      17 of 55\n    </p>\n
+        \ </td>\n  <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     41%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      30%\n
+        \   </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     145 of 208\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     23 of 63\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      2 of 2\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     100%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      ---\n
+        \   </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0\n
+        \   </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0\n
+        \   </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     6:17\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0:00\n
+        \   </p>\n  </td>\n</tr>\n\n      </tbody>\n      </table>\n    </section>\n
+        \   <section class=\"b-fight-details__section js-fight-section\">\n    <a
+        class=\"b-fight-details__collapse-link_rnd js-fight-collapse-link\">\n\n      <i
+        class=\"b-fight-details__collapse-left\">\n        Per round\n        <i class=\"b-fight-details__arrow\"></i>\n
+        \     </i>\n    </a>\n    <table class=\"b-fight-details__table js-fight-table\"
+        \ style=\"width: 745px;margin-bottom: 0px;\">\n      <thead class=\"b-fight-details__table-head_rnd\"
+        >\n      <tr  class=\"b-fight-details__table-row\">\n        <th class=\"b-fight-details__table-col
+        l-page_align_left\">\n          Fighter\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         KD\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Sig. str.\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Sig. str. %\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Total str.\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Td %\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Td %\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Sub. att\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Rev.\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Ctrl\n        </th>\n      </tr>\n      </thead>\n      <tbody   class=\"b-fight-details__table-body\">\n
+        \     \n\n\n\n          <thead class=\"b-fight-details__table-row b-fight-details__table-row_type_head\">\n\n
+        \           <th class=\"b-fight-details__table-col\" colspan=\"10\">\n              Round
+        1\n            </th>\n          </thead>\n          \n            <tr class=\"b-fight-details__table-row\">\n
+        \ <td  class=\"b-fight-details__table-col l-page_align_left\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei
+        Pavlovich </a>\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      11 of 23\n    </p>\n
+        \   <p class=\"b-fight-details__table-text\">\n      7 of 15\n    </p>\n  </td>\n
+        \ <td   class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     47%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      46%\n
+        \   </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     32 of 51\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     9 of 18\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td    class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     ---\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      ---\n
+        \   </p>\n  </td>\n  <td    class=\"b-fight-details__table-col\">\n    <p
+        class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>  \n  <td   class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>\n  <td   class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      1:09\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0:00\n    </p>\n  </td>\n</tr>\n
+        \         \n      \n\n\n\n          <thead class=\"b-fight-details__table-row
+        b-fight-details__table-row_type_head\">\n\n            <th class=\"b-fight-details__table-col\"
+        colspan=\"10\">\n              Round 2\n            </th>\n          </thead>\n
+        \         \n            <tr class=\"b-fight-details__table-row\">\n  <td  class=\"b-fight-details__table-col
+        l-page_align_left\">\n    <p class=\"b-fight-details__table-text\">\n      <a
+        class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei
+        Pavlovich </a>\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      3 of 19\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      6 of 17\n    </p>\n  </td>\n
+        \ <td   class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     15%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      35%\n
+        \   </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     39 of 64\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     8 of 19\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      1 of 1\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td    class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     100%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      ---\n
+        \   </p>\n  </td>\n  <td    class=\"b-fight-details__table-col\">\n    <p
+        class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>  \n  <td   class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>\n  <td   class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      2:19\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0:00\n    </p>\n  </td>\n</tr>\n
+        \         \n      \n\n\n\n          <thead class=\"b-fight-details__table-row
+        b-fight-details__table-row_type_head\">\n\n            <th class=\"b-fight-details__table-col\"
+        colspan=\"10\">\n              Round 3\n            </th>\n          </thead>\n
+        \         \n            <tr class=\"b-fight-details__table-row\">\n  <td  class=\"b-fight-details__table-col
+        l-page_align_left\">\n    <p class=\"b-fight-details__table-text\">\n      <a
+        class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei
+        Pavlovich </a>\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      11 of 18\n    </p>\n
+        \   <p class=\"b-fight-details__table-text\">\n      4 of 23\n    </p>\n  </td>\n
+        \ <td   class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     61%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      17%\n
+        \   </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     74 of 93\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     6 of 26\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      1 of 1\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td    class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     100%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      ---\n
+        \   </p>\n  </td>\n  <td    class=\"b-fight-details__table-col\">\n    <p
+        class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>  \n  <td   class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     0\n    </p>\n  </td>\n  <td   class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      2:49\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0:00\n    </p>\n  </td>\n</tr>\n
+        \         \n      \n\n      </tbody>\n    </table>\n    </section>\n<section
+        class=\"b-fight-details__section js-fight-section\">\n      <p class=\"b-fight-details__collapse-link_tot\"
+        style=\"margin-bottom: 0px;margin-top: 0px;\">\n        Significant Strikes\n\n
+        \     </p>\n\n    </section>\n\n    <table style=\"width: 745px\"  >\n      <thead
+        class=\"b-fight-details__table-head\">\n      <tr class=\"b-fight-details__table-row\">\n
+        \       <th class=\"b-fight-details__table-col l-page_align_left\">\n          Fighter\n
+        \       </th>\n        <th class=\"b-fight-details__table-col\">\n          Sig.
+        str\n        </th>\n        <th class=\"b-fight-details__table-col\">\n          Sig.
+        str. %\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Head\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Body\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Leg\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Distance\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Clinch\n        </th>\n        <th class=\"b-fight-details__table-col\">\n
+        \         Ground\n        </th>\n      </tr>\n      </thead>\n      <tbody
+        class=\"b-fight-details__table-body\">\n      <tr class=\"b-fight-details__table-row\">\n
+        \ <td class=\"b-fight-details__table-col l-page_align_left\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei
+        Pavlovich </a>\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      25 of 60\n    </p>\n
+        \   <p class=\"b-fight-details__table-text\">\n      17 of 55\n    </p>\n
+        \ </td>\n  <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     41%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      30%\n
+        \   </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     21 of 55\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     7 of 43\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      2 of 3\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      3 of 3\n    </p>\n  </td>\n
+        \ <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     2 of 2\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      7
+        of 9\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p
+        class=\"b-fight-details__table-text\">\n      25 of 60\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     17 of 55\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     0 of 0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0
+        of 0\n    </p>\n  </td>\n</tr>\n\n      </tbody>\n    </table>\n    <section
+        class=\"b-fight-details__section js-fight-section\">\n      <a class=\"b-fight-details__collapse-link_rnd
+        js-fight-collapse-link\">\n\n        <i class=\"b-fight-details__collapse-left\">\n
+        \         Per round\n          <i class=\"b-fight-details__arrow\"></i>\n
+        \       </i>\n      </a>\n      <table class=\"b-fight-details__table js-fight-table\"
+        \ style=\"width: 745px;margin-bottom: 0px;\">\n        <thead class=\"b-fight-details__table-head_rnd\"
+        \ >\n        <tr class=\"b-fight-details__table-row\">\n          <th class=\"b-fight-details__table-col
+        l-page_align_left\">\n            Fighter\n          </th>\n          <th
+        class=\"b-fight-details__table-col\">\n            Sig. str\n          </th>\n
+        \         <th class=\"b-fight-details__table-col\">\n            Sig. str.
+        %\n          </th>\n          <th class=\"b-fight-details__table-col\">\n
+        \           Head\n          </th>\n          <th class=\"b-fight-details__table-col\">\n
+        \           Body\n          </th>\n          <th class=\"b-fight-details__table-col\">\n
+        \           Leg\n          </th>\n          <th class=\"b-fight-details__table-col\">\n
+        \           Distance\n          </th>\n          <th class=\"b-fight-details__table-col\">\n
+        \           Clinch\n          </th>\n          <th class=\"b-fight-details__table-col\">\n
+        \           Ground\n          </th>\n        </tr>\n        </thead>\n        <tbody
+        class=\"b-fight-details__table-body\">\n        \n\n\n\n            <thead
+        class=\"b-fight-details__table-row b-fight-details__table-row_type_head\">\n\n
+        \           <th class=\"b-fight-details__table-col\" colspan=\"10\">\n              Round
+        1\n            </th>\n            </thead>\n            \n              <tr
+        class=\"b-fight-details__table-row\">\n  <td  class=\"b-fight-details__table-col
+        l-page_align_left\">\n    <p class=\"b-fight-details__table-text\">\n      <a
+        class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei
+        Pavlovich </a>\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      11 of 23\n    </p>\n
+        \   <p class=\"b-fight-details__table-text\">\n      7 of 15\n    </p>\n  </td>\n
+        \ <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     47%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      46%\n
+        \   </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     9 of 21\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0
+        of 8\n    </p>\n  </td>\n  <td    class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      2 of 2\n    </p>\n  </td>\n
+        \ <td    class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     2 of 2\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      5
+        of 5\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p
+        class=\"b-fight-details__table-text\">\n      11 of 23\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     7 of 15\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     0 of 0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0
+        of 0\n    </p>\n  </td>\n</tr>\n            \n        \n\n\n\n            <thead
+        class=\"b-fight-details__table-row b-fight-details__table-row_type_head\">\n\n
+        \           <th class=\"b-fight-details__table-col\" colspan=\"10\">\n              Round
+        2\n            </th>\n            </thead>\n            \n              <tr
+        class=\"b-fight-details__table-row\">\n  <td  class=\"b-fight-details__table-col
+        l-page_align_left\">\n    <p class=\"b-fight-details__table-text\">\n      <a
+        class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei
+        Pavlovich </a>\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      3 of 19\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      6 of 17\n    </p>\n  </td>\n
+        \ <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     15%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      35%\n
+        \   </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     2 of 17\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      3
+        of 13\n    </p>\n  </td>\n  <td    class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      1 of 2\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      1 of 1\n    </p>\n  </td>\n
+        \ <td    class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     0 of 0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      2
+        of 3\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p
+        class=\"b-fight-details__table-text\">\n      3 of 19\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     6 of 17\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     0 of 0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0
+        of 0\n    </p>\n  </td>\n</tr>\n            \n        \n\n\n\n            <thead
+        class=\"b-fight-details__table-row b-fight-details__table-row_type_head\">\n\n
+        \           <th class=\"b-fight-details__table-col\" colspan=\"10\">\n              Round
+        3\n            </th>\n            </thead>\n            \n              <tr
+        class=\"b-fight-details__table-row\">\n  <td  class=\"b-fight-details__table-col
+        l-page_align_left\">\n    <p class=\"b-fight-details__table-text\">\n      <a
+        class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/f14cf73e51b29254>Sergei
+        Pavlovich </a>\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     <a class='b-link b-link_style_black' href=http://ufcstats.com/fighter-details/2cd428e9606856fd>Jairzinho
+        Rozenstruik </a>\n    </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      11 of 18\n    </p>\n
+        \   <p class=\"b-fight-details__table-text\">\n      4 of 23\n    </p>\n  </td>\n
+        \ <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     61%\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      17%\n
+        \   </p>\n  </td>\n  <td  class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     10 of 17\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     4 of 22\n    </p>\n  </td>\n  <td    class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      1 of 1\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td    class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     0 of 0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0
+        of 1\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n    <p
+        class=\"b-fight-details__table-text\">\n      11 of 18\n    </p>\n    <p class=\"b-fight-details__table-text\">\n
+        \     4 of 23\n    </p>\n  </td>\n  <td class=\"b-fight-details__table-col\">\n
+        \   <p class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n    <p
+        class=\"b-fight-details__table-text\">\n      0 of 0\n    </p>\n  </td>\n
+        \ <td class=\"b-fight-details__table-col\">\n    <p class=\"b-fight-details__table-text\">\n
+        \     0 of 0\n    </p>\n    <p class=\"b-fight-details__table-text\">\n      0
+        of 0\n    </p>\n  </td>\n</tr>\n            \n        \n\n        </tbody>\n
+        \     </table>\n    </section>\n\n<section class=\"b-fight-details__section\">\n
+        \ <div class=\"b-fight-details__charts\">\n    <header class=\"b-fight-details__charts-head
+        b-fight-details__charts-head_style_bordered\">\n      <h3 class=\"b-fight-details__charts-head-title\">\n
+        \       Significant Strikes\n      </h3>\n      <i class=\"b-fight-details__charts-name
+        b-fight-details__charts-name_pos_left js-chart-name\" data-color=\"red\">\n
+        \       <i class=\"b-fight-details__charts-bullet\"></i>\n        Sergei Pavlovich\n
+        \     </i>\n      <i class=\"b-fight-details__charts-name b-fight-details__charts-name_pos_right
+        js-chart-name\" data-color=\"blue\">\n        <i class=\"b-fight-details__charts-bullet\"></i>\n
+        \       Jairzinho Rozenstruik\n      </i>\n    </header>\n    \n    \n    \n
+        \   \n    <div class=\"b-fight-details__charts-body clearfix\">\n      <div
+        class=\"b-fight-details__charts-col\">\n        <div class=\"b-fight-details__charts-col-row
+        clearfix\">\n          <h4 class=\"b-fight-details__charts-title\">\n            Landed
+        by target\n          </h4>\n          <div class=\"b-fight-details__chart-inner
+        clearfix\">\n            \n\n\n<div class=\"b-fight-details__stacked-chart
+        js-red>\">\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_red
+        js-alt\" style=\"height: 84.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_dark-red
+        js-alt\" style=\"height: 8.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_light-red
+        js-alt\" style=\"height: 8.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n</div>\n            <div class=\"b-fight-details__charts-table\">\n
+        \             <div class=\"b-fight-details__charts-row\">\n                <i
+        class=\"b-fight-details__charts-num b-fight-details__charts-num_style_red
+        b-fight-details__charts-num_pos_left js-red\">\n                  84%\n                </i>\n
+        \               <i class=\"b-fight-details__charts-row-title\">\n                  Head\n
+        \               </i>\n                <i class=\"b-fight-details__charts-num
+        b-fight-details__charts-num_style_blue b-fight-details__charts-num_pos_right
+        js-blue\">\n                  41%\n                </i>\n              </div>\n
+        \             <div class=\"b-fight-details__charts-row\">\n                <i
+        class=\"b-fight-details__charts-num b-fight-details__charts-num_style_dark-red
+        b-fight-details__charts-num_pos_left js-red\">\n                  8%\n                </i>\n
+        \               <i class=\"b-fight-details__charts-row-title\">\n                  Body\n
+        \               </i>\n                <i class=\"b-fight-details__charts-num
+        b-fight-details__charts-num_style_dark-blue b-fight-details__charts-num_pos_right
+        js-blue\">\n                  17%\n                </i>\n              </div>\n
+        \             <div class=\"b-fight-details__charts-row\">\n                <i
+        class=\"b-fight-details__charts-num b-fight-details__charts-num_style_light-red
+        b-fight-details__charts-num_pos_left js-red\">\n                  8%\n                </i>\n
+        \               <i class=\"b-fight-details__charts-row-title\">\n                  Leg\n
+        \               </i>\n                <i class=\"b-fight-details__charts-num
+        b-fight-details__charts-num_style_light-blue b-fight-details__charts-num_pos_right
+        js-blue\">\n                  41%\n                </i>\n              </div>\n
+        \           </div>\n            \n\n\n<div class=\"b-fight-details__stacked-chart
+        js-blue>\">\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_blue
+        js-alt\" style=\"height: 41.1764705882353%\">\n    <i class=\"b-rating__alt
+        b-rating__alt_pos_right-bottom\">\n      <i class=\"b-rating__alt-pointer\"></i>\n
+        \     Avg. 50%   High 80%\n    </i>\n  </i>\n  <i class=\"b-fight-details__stacked-chart-fill
+        b-fight-details__stacked-chart-fill_style_dark-blue js-alt\" style=\"height:
+        17.647058823529413%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_light-blue
+        js-alt\" style=\"height: 41.1764705882353%\">\n    <i class=\"b-rating__alt
+        b-rating__alt_pos_right-bottom\">\n      <i class=\"b-rating__alt-pointer\"></i>\n
+        \     Avg. 50%   High 80%\n    </i>\n  </i>\n</div>\n          </div>\n        </div>\n
+        \       <div class=\"b-fight-details__charts-col-row clearfix\">\n          <h4
+        class=\"b-fight-details__charts-title\">\n            Landed by position\n
+        \         </h4>\n          <div class=\"b-fight-details__chart-inner\">\n
+        \           \n\n\n<div class=\"b-fight-details__stacked-chart js-red>\">\n
+        \ <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_red
+        js-alt\" style=\"height: 100.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_dark-red
+        js-alt\" style=\"height: 0.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_light-red
+        js-alt\" style=\"height: 0.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n</div>\n            <div class=\"b-fight-details__charts-table\">\n
+        \             <div class=\"b-fight-details__charts-row\">\n                <i
+        class=\"b-fight-details__charts-num b-fight-details__charts-num_style_red
+        b-fight-details__charts-num_pos_left js-red\">\n                  100%\n                </i>\n
+        \               <i class=\"b-fight-details__charts-row-title\">\n                  Distance\n
+        \               </i>\n                <i class=\"b-fight-details__charts-num
+        b-fight-details__charts-num_style_blue b-fight-details__charts-num_pos_right
+        js-blue\">\n                  100%\n                </i>\n              </div>\n
+        \             <div class=\"b-fight-details__charts-row\">\n                <i
+        class=\"b-fight-details__charts-num b-fight-details__charts-num_style_dark-red
+        b-fight-details__charts-num_pos_left js-red\">\n                  0%\n                </i>\n
+        \               <i class=\"b-fight-details__charts-row-title\">\n                  Clinch\n
+        \               </i>\n                <i class=\"b-fight-details__charts-num
+        b-fight-details__charts-num_style_dark-blue b-fight-details__charts-num_pos_right
+        js-blue\">\n                  0%\n                </i>\n              </div>\n
+        \             <div class=\"b-fight-details__charts-row\">\n                <i
+        class=\"b-fight-details__charts-num b-fight-details__charts-num_style_light-red
+        b-fight-details__charts-num_pos_left js-red\">\n                  0%\n                </i>\n
+        \               <i class=\"b-fight-details__charts-row-title\">\n                  Ground\n
+        \               </i>\n                <i class=\"b-fight-details__charts-num
+        b-fight-details__charts-num_style_light-blue b-fight-details__charts-num_pos_right
+        js-blue\">\n                  0%\n                </i>\n              </div>\n
+        \           </div>\n            \n\n\n<div class=\"b-fight-details__stacked-chart
+        js-blue>\">\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_blue
+        js-alt\" style=\"height: 100.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_dark-blue
+        js-alt\" style=\"height: 0.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n  <i class=\"b-fight-details__stacked-chart-fill b-fight-details__stacked-chart-fill_style_light-blue
+        js-alt\" style=\"height: 0.0%\">\n    <i class=\"b-rating__alt b-rating__alt_pos_right-bottom\">\n
+        \     <i class=\"b-rating__alt-pointer\"></i>\n      Avg. 50%   High 80%\n
+        \   </i>\n  </i>\n</div>\n          </div>\n        </div>\n      </div>\n
+        \     <div class=\"b-fight-details__charts-col b-fight-details__charts-col_pos_right\">\n
+        \       <div class=\"b-fight-details__charts-col-row\">\n          <h4 class=\"b-fight-details__charts-title
+        b-fight-details__charts-title_type_left\">\n            Per round\n          </h4>\n\n
+        \         <div class=\"b-fight-details__bar-charts-inner\">\n            \n
+        \               \n                  <div class=\"b-fight-details__bar-charts-row
+        clearfix\">\n  <i class=\"b-fight-details__bar-chart-title\">\n    RD1\n  </i>\n
+        \ <i class=\"b-fight-details__bar-chart-inner\">\n    <i class=\"b-fight-details__bar-chart-row
+        js-red\">\n      <i class=\"b-fight-details__bar-chart b-fight-details__bar-chart_style_red\"
+        style=\"width: 46.0px\">\n        <i class=\"b-fight-details__bar-chart-fill\"
+        style=\"width: 22.0018px\"></i>\n      </i>\n      <i class=\"b-fight-details__bar-chart-text
+        b-fight-details__bar-chart-text_style_light-red\">\n        11 of 23 - 47%\n
+        \     </i>\n    </i>\n    <i class=\"b-fight-details__bar-chart-row js-blue\">\n
+        \     <i class=\"b-fight-details__bar-chart b-fight-details__bar-chart_style_blue\"
+        style=\"width: 30.0px\">\n        <i class=\"b-fight-details__bar-chart-fill\"
+        style=\"width: 14.001px\"></i>\n      </i>\n      <i class=\"b-fight-details__bar-chart-text
+        b-fight-details__bar-chart-text_style_light-blue\">\n        7 of 15 - 46%\n
+        \     </i>\n    </i>\n  </i>\n</div>\n                \n            \n                \n
+        \                 <div class=\"b-fight-details__bar-charts-row clearfix\">\n
+        \ <i class=\"b-fight-details__bar-chart-title\">\n    RD2\n  </i>\n  <i class=\"b-fight-details__bar-chart-inner\">\n
+        \   <i class=\"b-fight-details__bar-chart-row js-red\">\n      <i class=\"b-fight-details__bar-chart
+        b-fight-details__bar-chart_style_red\" style=\"width: 38.0px\">\n        <i
+        class=\"b-fight-details__bar-chart-fill\" style=\"width: 6.0001999999999995px\"></i>\n
+        \     </i>\n      <i class=\"b-fight-details__bar-chart-text b-fight-details__bar-chart-text_style_light-red\">\n
+        \       3 of 19 - 15%\n      </i>\n    </i>\n    <i class=\"b-fight-details__bar-chart-row
+        js-blue\">\n      <i class=\"b-fight-details__bar-chart b-fight-details__bar-chart_style_blue\"
+        style=\"width: 34.0px\">\n        <i class=\"b-fight-details__bar-chart-fill\"
+        style=\"width: 11.9986px\"></i>\n      </i>\n      <i class=\"b-fight-details__bar-chart-text
+        b-fight-details__bar-chart-text_style_light-blue\">\n        6 of 17 - 35%\n
+        \     </i>\n    </i>\n  </i>\n</div>\n                \n            \n                \n
+        \                 <div class=\"b-fight-details__bar-charts-row clearfix\">\n
+        \ <i class=\"b-fight-details__bar-chart-title\">\n    RD3\n  </i>\n  <i class=\"b-fight-details__bar-chart-inner\">\n
+        \   <i class=\"b-fight-details__bar-chart-row js-red\">\n      <i class=\"b-fight-details__bar-chart
+        b-fight-details__bar-chart_style_red\" style=\"width: 36.0px\">\n        <i
+        class=\"b-fight-details__bar-chart-fill\" style=\"width: 21.9996px\"></i>\n
+        \     </i>\n      <i class=\"b-fight-details__bar-chart-text b-fight-details__bar-chart-text_style_light-red\">\n
+        \       11 of 18 - 61%\n      </i>\n    </i>\n    <i class=\"b-fight-details__bar-chart-row
+        js-blue\">\n      <i class=\"b-fight-details__bar-chart b-fight-details__bar-chart_style_blue\"
+        style=\"width: 46.0px\">\n        <i class=\"b-fight-details__bar-chart-fill\"
+        style=\"width: 7.9994px\"></i>\n      </i>\n      <i class=\"b-fight-details__bar-chart-text
+        b-fight-details__bar-chart-text_style_light-blue\">\n        4 of 23 - 17%\n
+        \     </i>\n    </i>\n  </i>\n</div>\n                \n            \n            <div
+        class=\"b-fight-details__bar-legend\">\n              <i class=\"b-fight-details__bar-legend-row\">\n
+        \               <i class=\"b-fight-details__bar-legend-dot b-fight-details__bar-legend-dot_style_red
+        js-red\"></i>\n                <i class=\"b-fight-details__bar-legend-dot
+        b-fight-details__bar-legend-dot_style_blue js-blue\"></i>\n                <i
+        class=\"b-fight-details__bar-legend-text\">\n                  Landed\n                </i>\n
+        \             </i>\n              <i class=\"b-fight-details__bar-legend-row\">\n
+        \               <i class=\"b-fight-details__bar-legend-dot b-fight-details__bar-legend-dot_style_red
+        b-fight-details__bar-legend-dot_type_empty js-red\"></i>\n                <i
+        class=\"b-fight-details__bar-legend-dot b-fight-details__bar-legend-dot_style_blue
+        b-fight-details__bar-legend-dot_type_empty js-blue\"></i>\n                <i
+        class=\"b-fight-details__bar-legend-text\">\n                  Attempted\n
+        \               </i>\n              </i>\n            </div>\n          </div>\n
+        \       </div>\n      </div>\n      <i class=\"b-fight-details__charts-line\"></i>\n
+        \   </div>\n  </div>\n</section>\n\n\n</div>\n        \n    </div>\n</section>\n
+        \   <footer class=\"b-foot\">\n  <div class=\"b-foot__inner\">\n    <div class=\"l-page__container
+        clearfix\">\n      <div class=\"b-foot__right\">\n        <div class=\"b-foot__list-inner\">\n
+        \         <h4 class=\"b-foot__list-title\">\n            Navigation\n          </h4>\n
+        \         <ul class=\"b-foot__list\">\n            <li class=\"b-foot__item\">\n
+        \             <a class=\"b-foot__link\" href=\"/statistics/events/\">\n                Events
+        &amp; Fights\n              </a>\n            </li>\n            <li class=\"b-foot__item\">\n
+        \             <a class=\"b-foot__link\" href=\"/statistics/fighters\">\n                Fighters\n
+        \             </a>\n            </li>\n            <li class=\"b-foot__item\">\n
+        \             <a class=\"b-foot__link\" href=\"http://statleaders.ufc.com\"
+        target=\"_blank\">\n                Stat Leaders\n              </a>\n            </li>\n
+        \         </ul>\n        </div>     \n      </div>\n      <div class=\"b-foot__logo\">\n
+        \       <a href=\"/\">\n        <img src=\"http://1e49bc5171d173577ecd-1323f4090557a33db01577564f60846c.r80.cf1.rackcdn.com/ufc-stats-foot-logo.png\"
+        alt=\"\">\n        </a>\n        <div class=\"b-foot__copy-inner\">\n          &copy;
+        All Rights Reserved |\n          <a class=\"b-foot__copy-link\" href=\"https://ufc.com/terms\"
+        target=\"_blank\">Terms of Use</a> |\n          <a class=\"b-foot__copy-link\"
+        href=\"https://ufc.com/privacy-policy\" target=\"_blank\">Privacy Policy</a>\n
+        \       </div>\n      </div>      \n    </div>\n  </div>\n</footer>\n    <script
+        src=\"//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js\"></script>\n<script
+        src=\"http://code.jquery.com/jquery-1.9.1.js\"></script>\n<script src=\"http://code.jquery.com/ui/1.10.3/jquery-ui.js\"></script>\n<link
+        rel=\"stylesheet\" href=\"http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css\"
+        />\n<script>window.jQuery || document.write('<script src=\"/js/vendor/jquery-1.10.2.min.js\"><\\/script>')</script>\n<script
+        type=\"text/javascript\" src=\"/js/vendor/jquery.validate.min.js\"></script>\n<script
+        src=\"/js/plugins.js\"></script>\n<script src=\"/js/main.js?ver=312433\"></script>\n<script
+        type=\"text/javascript\">\n    $(document).ready(function () {\n        $(function
+        () {\n            $(\"#dialog\").dialog({\n\n                autoOpen: false,\n
+        \               modal: true,\n                show: {\n                    effect:
+        \"blind\",\n                    duration: 1000\n                },\n                hide:
+        {\n                    effect: \"fold\",\n                    duration: 1000\n
+        \               }\n\n            });\n        });\n    }\n\n    );\n    $(\"#opener\").click(function
+        () {\n        $(\"#dialog\").dialog(\"open\");\n    });\n    $(\"#opener\").click(function
+        () {\n        var state = true;\n        if (state) {\n            $(\"#dialog\").animate({\n
+        \               backgroundColor: \"white\",\n                color: \"black\"\n\n
+        \           }, 1000);\n        }\n    });\n\n</script>\n\n<script type=\"text/javascript\">\n\n
+        /*window.onload = function (){\n     // location.pathname.split( '/' )\n     theUrl
+        = window.location.host;\n\n\n     if(theUrl === 'hosteddb.fightmetric.com'){\n
+        \        window.location.replace(\"http://www.fightmetric.com/statistics/events/upcoming\");\n
+        \    }\n\n     //alert(theUrl);\n  }*/\n  //window.onpaint = handleHosted;\n</script>\n</body>\n</html>"
+  recorded_at: Fri, 25 Jul 2025 18:54:31 GMT
+recorded_with: VCR 6.3.1

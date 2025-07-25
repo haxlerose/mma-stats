@@ -449,4 +449,14 @@ class Api::V1::EventsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal "application/json; charset=utf-8", response.content_type
   end
+
+  test "GET show includes fight_count in response" do
+    get "/api/v1/events/#{@event1.id}"
+
+    assert_response :success
+    event = response.parsed_body["event"]
+
+    assert_not_nil event["fight_count"], "Event should include fight_count"
+    assert_equal 2, event["fight_count"], "Event should have 2 fights"
+  end
 end
