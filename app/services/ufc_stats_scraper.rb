@@ -60,19 +60,29 @@ class UfcStatsScraper
     doc = Nokogiri::HTML(html)
 
     fights = extract_fights(doc)
+    enrich_fights_with_details(fights)
 
-    # For each fight, get additional details from the fight page
+    build_event_data(doc, fights)
+  end
+
+  def enrich_fights_with_details(fights)
     fights.each do |fight|
-      fight_details = scrape_fight_details(fight[:fight_url])
-      fight[:referee] = fight_details[:referee]
-      fight[:time_format] = fight_details[:time_format]
-      fight[:details] = fight_details[:details]
-      # Override method if we got better data from details page
-      fight[:method] = fight_details[:method] if fight_details[:method]
-    rescue StandardError => e
-      Rails.logger.info "    ⚠ Could not fetch fight details: #{e.message}"
+      enrich_single_fight(fight)
     end
+  end
 
+  def enrich_single_fight(fight)
+    fight_details = scrape_fight_details(fight[:fight_url])
+    fight[:referee] = fight_details[:referee]
+    fight[:time_format] = fight_details[:time_format]
+    fight[:details] = fight_details[:details]
+    # Override method if we got better data from details page
+    fight[:method] = fight_details[:method] if fight_details[:method]
+  rescue StandardError => e
+    Rails.logger.info "    ⚠ Could not fetch fight details: #{e.message}"
+  end
+
+  def build_event_data(doc, fights)
     {
       name: extract_event_name(doc),
       date: extract_event_date(doc),
@@ -104,34 +114,7 @@ class UfcStatsScraper
     fights_csv = []
     fight_stats_csv = []
 
-    event_data[:fights].each_with_index do |fight, index|
-      Rails.logger.info "  Scraping fight #{index + 1}/#{event_data[:fights].count}: " \
-                        "#{fight[:fighter1]} vs #{fight[:fighter2]}..."
-
-      begin
-        # Get detailed fight data
-        fight_details = scrape_fight_details(fight[:fight_url])
-
-        # Build fights CSV row
-        fights_csv << build_fight_csv_row(event_data, fight, fight_details)
-
-        # Build fight_stats CSV rows if rounds data exists
-        if fight_details[:rounds]&.any?
-          fight_details[:rounds].each do |round|
-            fight_stats_csv << build_fight_stat_csv_row(
-              event_data, fight, round, fight_details[:fighter1], :fighter1_stats
-            )
-            fight_stats_csv << build_fight_stat_csv_row(
-              event_data, fight, round, fight_details[:fighter2], :fighter2_stats
-            )
-          end
-        else
-          Rails.logger.info "    ⚠ No round data found for this fight"
-        end
-      rescue StandardError => e
-        Rails.logger.info "    ✗ Error scraping fight details: #{e.message}"
-      end
-    end
+    process_fights_for_csv(event_data, fights_csv, fight_stats_csv)
 
     {
       fights: fights_csv,
@@ -139,40 +122,110 @@ class UfcStatsScraper
     }
   end
 
+  def process_fights_for_csv(event_data, fights_csv, fight_stats_csv)
+    event_data[:fights].each_with_index do |fight, index|
+      log_fight_processing(index, event_data[:fights].count, fight)
+      process_single_fight_for_csv(
+        event_data,
+        fight,
+        fights_csv,
+        fight_stats_csv
+      )
+    end
+  end
+
+  def log_fight_processing(index, total_count, fight)
+    Rails.logger.info "  Scraping fight " \
+                      "#{index + 1}/#{total_count}: " \
+                      "#{fight[:fighter1]} vs #{fight[:fighter2]}..."
+  end
+
+  def process_single_fight_for_csv(
+    event_data, fight, fights_csv,
+    fight_stats_csv
+  )
+    fight_details = scrape_fight_details(fight[:fight_url])
+    fights_csv << build_fight_csv_row(event_data, fight, fight_details)
+    add_fight_stats_rows(event_data, fight, fight_details, fight_stats_csv)
+  rescue StandardError => e
+    Rails.logger.info "    ✗ Error scraping fight details: #{e.message}"
+  end
+
+  def add_fight_stats_rows(event_data, fight, fight_details, fight_stats_csv)
+    return log_no_round_data unless fight_details[:rounds]&.any?
+
+    fight_details[:rounds].each do |round|
+      add_fighter_stat_rows(
+        event_data,
+        fight,
+        round,
+        fight_details,
+        fight_stats_csv
+      )
+    end
+  end
+
+  def add_fighter_stat_rows(
+    event_data, fight, round, fight_details,
+    fight_stats_csv
+  )
+    fight_stats_csv << build_fight_stat_csv_row(
+      event_data,
+      fight,
+      round,
+      fight_details[:fighter1],
+      :fighter1_stats
+    )
+    fight_stats_csv << build_fight_stat_csv_row(
+      event_data,
+      fight,
+      round,
+      fight_details[:fighter2],
+      :fighter2_stats
+    )
+  end
+
+  def log_no_round_data
+    Rails.logger.info "    ⚠ No round data found for this fight"
+  end
+
   private
 
   def extract_events_from_list(doc)
     events = []
 
-    # Find all event rows in the table
     doc.css("tr.b-statistics__table-row").each do |row|
-      # Skip header rows
-      next if row.css("th").any?
-
-      # Extract event link and name from the first column
-      event_cell = row.css("td.b-statistics__table-col")[0]
-      event_link = event_cell&.css("a.b-link")&.first
-      next unless event_link
-
-      event_name = event_link.text.strip
-      event_url = event_link["href"]
-
-      # Extract date from the first cell (it contains both link and date)
-      date_text = event_cell.css("span.b-statistics__date").text.strip
-
-      # Extract location from the second column
-      location_cell = row.css("td.b-statistics__table-col")[1]
-      location_text = location_cell&.text&.strip
-
-      events << {
-        name: event_name,
-        url: event_url,
-        date: date_text,
-        location: location_text
-      }
+      event = extract_event_from_row(row)
+      events << event if event
     end
 
     events
+  end
+
+  def extract_event_from_row(row)
+    return nil if row.css("th").any? # Skip header rows
+
+    event_link = find_event_link(row)
+    return nil unless event_link
+
+    build_event_hash(row, event_link)
+  end
+
+  def find_event_link(row)
+    event_cell = row.css("td.b-statistics__table-col")[0]
+    event_cell&.css("a.b-link")&.first
+  end
+
+  def build_event_hash(row, event_link)
+    event_cell = row.css("td.b-statistics__table-col")[0]
+    location_cell = row.css("td.b-statistics__table-col")[1]
+
+    {
+      name: event_link.text.strip,
+      url: event_link["href"],
+      date: event_cell.css("span.b-statistics__date").text.strip,
+      location: location_cell&.text&.strip
+    }
   end
 
   def normalize_event_name(name)
@@ -196,109 +249,118 @@ class UfcStatsScraper
   end
 
   def extract_event_date(doc)
-    date_text = doc.css("li.b-list__box-list-item")
+    date_item = doc.css("li.b-list__box-list-item")
                    .find { |li| li.text.include?("Date:") }
-                   &.text
-                   &.gsub("Date:", "")
-                   &.strip
+    return nil unless date_item
 
-    Date.parse(date_text) if date_text
+    date_text = date_item.text.gsub("Date:", "").strip
+    Date.parse(date_text) if date_text.present?
   end
 
   def extract_event_location(doc)
-    doc.css("li.b-list__box-list-item")
-       .find { |li| li.text.include?("Location:") }
-       &.text
-       &.gsub("Location:", "")
-       &.strip
+    location_item = doc.css("li.b-list__box-list-item")
+                       .find { |li| li.text.include?("Location:") }
+    return nil unless location_item
+
+    location_item.text.gsub("Location:", "").strip
   end
 
   def extract_fights(doc)
     fights = []
 
     doc.css("tr.b-fight-details__table-row[data-link]").each do |row|
-      fight_url = row["data-link"]
-      next unless fight_url
-
-      cells = row.css("td.b-fight-details__table-col")
-
-      # Cell 0: Win/Loss indicator
-      winner_indicator = cells[0].css("i.b-flag__text").text.strip
-
-      # Cell 1: Fighter names
-      fighters = cells[1].css("a.b-link")
-                         .map(&:text)
-                         .map(&:strip)
-
-      # Cells 2-5: Stats (KD, SIG.STR., TD, SUB.ATT) - skip for now
-
-      # Cell 6: Weight class
-      weight_class = cells[6].text.strip.split("\n").first&.strip || "Unknown"
-
-      # Cell 7: Method (may have multiple lines)
-      method = cells[7].text.strip.gsub(/\s+/, " ")
-
-      # Cell 8: Round
-      round = cells[8].text.strip.to_i
-
-      # Cell 9: Time
-      time = cells[9].text.strip
-
-      fights << {
-        fighter1: fighters[0],
-        fighter2: fighters[1],
-        winner: winner_indicator == "win" ? fighters[0] : fighters[1],
-        weight_class: weight_class,
-        method: method,
-        round: round,
-        time: time,
-        fight_url: fight_url
-      }
+      fight = extract_fight_from_row(row)
+      fights << fight if fight
     end
 
     fights
   end
 
+  def extract_fight_from_row(row)
+    fight_url = row["data-link"]
+    return nil unless fight_url
+
+    cells = row.css("td.b-fight-details__table-col")
+    fight_data = extract_fight_data_from_cells(cells)
+    fight_data[:fight_url] = fight_url
+    fight_data
+  end
+
+  def extract_fight_data_from_cells(cells)
+    winner_indicator = extract_winner_indicator(cells[0])
+    fighters = extract_fighters(cells[1])
+
+    build_fight_data_hash(cells, fighters, winner_indicator)
+  end
+
+  def extract_winner_indicator(cell)
+    cell.css("i.b-flag__text").text.strip
+  end
+
+  def build_fight_data_hash(cells, fighters, winner_indicator)
+    {
+      fighter1: fighters[0],
+      fighter2: fighters[1],
+      winner: determine_winner(fighters, winner_indicator),
+      weight_class: extract_weight_class(cells[6]),
+      method: extract_method(cells[7]),
+      round: cells[8].text.strip.to_i,
+      time: cells[9].text.strip
+    }
+  end
+
+  def determine_winner(fighters, winner_indicator)
+    winner_indicator == "win" ? fighters[0] : fighters[1]
+  end
+
+  def extract_fighters(cell)
+    cell.css("a.b-link").map { |link| link.text.strip }
+  end
+
+  def extract_weight_class(cell)
+    cell.text.strip.split("\n").first&.strip || "Unknown"
+  end
+
+  def extract_method(cell)
+    cell.text.strip.gsub(/\s+/, " ")
+  end
+
   def extract_fighter1(doc)
-    doc.css("div.b-fight-details__person")[0]
-       &.css("h3.b-fight-details__person-name a")
-       &.text
-       &.strip
+    person_div = doc.css("div.b-fight-details__person")[0]
+    return nil unless person_div
+
+    fighter_link = person_div.css("h3.b-fight-details__person-name a")
+    fighter_link.text.strip if fighter_link.any?
   end
 
   def extract_fighter2(doc)
-    doc.css("div.b-fight-details__person")[1]
-       &.css("h3.b-fight-details__person-name a")
-       &.text
-       &.strip
+    person_div = doc.css("div.b-fight-details__person")[1]
+    return nil unless person_div
+
+    fighter_link = person_div.css("h3.b-fight-details__person-name a")
+    fighter_link.text.strip if fighter_link.any?
   end
 
   def extract_winner(doc)
     winner_element = doc.css("div.b-fight-details__person")
-                        .find { |div| div.css("i.b-fight-details__person-status_style_green").any? }
+                        .find do |div|
+      green_style = "i.b-fight-details__person-status_style_green"
+      div.css(green_style).any?
+    end
 
-    winner_element&.css("h3.b-fight-details__person-name a")&.text&.strip
-  end
+    return nil unless winner_element
 
-  def extract_method(doc)
-    method_element = doc.css("p.b-fight-details__text")
-                        .find { |p| p.text.include?("Method:") }
-    return nil unless method_element
-
-    # Extract text between "Method:" and "Round:"
-    text = method_element.text
-    method = text.match(/Method:\s*([^\n]+?)\s*Round:/m)&.captures&.first
-    method&.strip
+    fighter_link = winner_element.css("h3.b-fight-details__person-name a")
+    fighter_link.text.strip if fighter_link.any?
   end
 
   def extract_round(doc)
-    doc.css("p.b-fight-details__text")
-       .find { |p| p.text.include?("Round:") }
-       &.text
-       &.match(/Round:\s*(\d+)/)
-       &.captures
-       &.first
-       &.to_i
+    round_element = doc.css("p.b-fight-details__text")
+                       .find { |p| p.text.include?("Round:") }
+    return nil unless round_element
+
+    match = round_element.text.match(/Round:\s*(\d+)/)
+    match[1].to_i if match
   end
 
   def extract_time(doc)
@@ -335,164 +397,179 @@ class UfcStatsScraper
   end
 
   def extract_details(doc)
-    # Look for the Details: label and get ALL text after it
-    details_text = nil
+    details_text = extract_details_from_label(doc)
+    return details_text if details_text.present?
 
-    # Find the fight details section
+    extract_details_from_patterns(doc)
+  end
+
+  def extract_details_from_label(doc)
     fight_details_section = doc.css("div.b-fight-details__fight")
+    return nil unless fight_details_section.any?
 
-    if fight_details_section.any?
-      # Get all text content and find everything after "Details:"
-      full_text = fight_details_section.text
+    full_text = fight_details_section.text
+    return nil unless full_text.include?("Details:")
 
-      # Look for "Details:" and capture everything after it
-      if full_text.include?("Details:")
-        # Split by "Details:" and get everything after
-        parts = full_text.split("Details:", 2)
-        if parts.length > 1
-          # Clean up the text - remove extra whitespace and newlines
-          details_text = parts[1].strip.gsub(/\s+/, " ")
+    extract_and_clean_details_text(full_text)
+  end
 
-          # Remove any trailing section markers if present
-          details_text = details_text.split(/\n\s*\n/).first if details_text
-        end
-      end
-    end
+  def extract_and_clean_details_text(full_text)
+    parts = full_text.split("Details:", 2)
+    return nil unless parts.length > 1
 
-    # If no details found with "Details:" label, look for specific detail patterns
-    if details_text.blank?
-      # Check for judge scores in decision fights
-      judge_scores = doc.css("p.b-fight-details__text").find_all do |p|
-        p.text.match(/\d+\s*-\s*\d+/)
-      end
-      if judge_scores.any?
-        scores_text = judge_scores.map(&:text).join(" ").strip.gsub(/\s+/, " ")
-        details_text = scores_text unless scores_text.empty?
-      end
-    end
-
+    details_text = parts[1].strip.gsub(/\s+/, " ")
+    details_text = details_text.split(/\n\s*\n/).first if details_text
     details_text
   end
 
-  def extract_round_stats(doc)
-    rounds = []
+  def extract_details_from_patterns(doc)
+    judge_scores = find_judge_scores(doc)
+    return nil unless judge_scores.any?
 
-    # Find sections with "Per round" links
-    per_round_sections = doc.css("section.b-fight-details__section").select do |section|
+    scores_text = judge_scores.map(&:text).join(" ").strip.gsub(/\s+/, " ")
+    scores_text.presence
+  end
+
+  def find_judge_scores(doc)
+    doc.css("p.b-fight-details__text").find_all do |p|
+      p.text.match(/\d+\s*-\s*\d+/)
+    end
+  end
+
+  def extract_round_stats(doc)
+    per_round_sections = find_per_round_sections(doc)
+    return [] if per_round_sections.empty?
+
+    rounds = extract_general_stats(per_round_sections.first)
+    add_significant_strike_details(per_round_sections, rounds)
+
+    rounds.sort_by { |r| r[:round] }
+  end
+
+  def find_per_round_sections(doc)
+    doc.css("section.b-fight-details__section").select do |section|
       section.css("a").any? { |a| a.text.strip.downcase == "per round" }
     end
+  end
 
-    return rounds if per_round_sections.empty?
+  def extract_general_stats(general_stats_section)
+    return [] unless general_stats_section
 
-    # Get fighter names from the main fight details
-    extract_fighter1(doc)
-    extract_fighter2(doc)
+    table_class = "table.b-fight-details__table"
+    general_table = general_stats_section.css(table_class).first
+    return [] unless general_table
 
-    # Process the first per-round section (general stats)
-    general_stats_section = per_round_sections.first
-    general_table = general_stats_section.css("table.b-fight-details__table").first
+    process_general_stats_table(general_table)
+  end
 
-    if general_table
-      general_table.css("tr").first.css("th").map(&:text).map(&:strip)
+  def process_general_stats_table(table)
+    rounds = []
+    data_rows = table.css("tr").select { |tr| tr.css("td").any? }
 
-      # Get all data rows (skip header row)
-      data_rows = general_table.css("tr").select { |tr| tr.css("td").any? }
-
-      # Each row represents a round
-      data_rows.each_with_index do |row, idx|
-        round_num = idx + 1
-        cells = row.css("td")
-
-        # Parse each cell - each contains data for both fighters separated by newlines
-        round_stats = {
-          round: round_num,
-          fighter1_stats: {},
-          fighter2_stats: {}
-        }
-
-        # KD (index 1)
-        if cells[1]
-          kd_data = parse_dual_stat_cell(cells[1].text)
-          round_stats[:fighter1_stats][:knockdowns] = kd_data[:fighter1]
-          round_stats[:fighter2_stats][:knockdowns] = kd_data[:fighter2]
-        end
-
-        # Sig. str. (index 2)
-        if cells[2]
-          sig_str_data = parse_dual_of_stat_cell(cells[2].text)
-          round_stats[:fighter1_stats][:significant_strikes] =
-            sig_str_data[:fighter1][:landed]
-          round_stats[:fighter1_stats][:significant_strikes_attempted] =
-            sig_str_data[:fighter1][:attempted]
-          round_stats[:fighter2_stats][:significant_strikes] =
-            sig_str_data[:fighter2][:landed]
-          round_stats[:fighter2_stats][:significant_strikes_attempted] =
-            sig_str_data[:fighter2][:attempted]
-        end
-
-        # Total str. (index 4)
-        if cells[4]
-          total_str_data = parse_dual_of_stat_cell(cells[4].text)
-          round_stats[:fighter1_stats][:total_strikes] =
-            total_str_data[:fighter1][:landed]
-          round_stats[:fighter1_stats][:total_strikes_attempted] =
-            total_str_data[:fighter1][:attempted]
-          round_stats[:fighter2_stats][:total_strikes] =
-            total_str_data[:fighter2][:landed]
-          round_stats[:fighter2_stats][:total_strikes_attempted] =
-            total_str_data[:fighter2][:attempted]
-        end
-
-        # Takedowns (index 5)
-        if cells[5]
-          td_data = parse_dual_of_stat_cell(cells[5].text)
-          round_stats[:fighter1_stats][:takedowns] = td_data[:fighter1][:landed]
-          round_stats[:fighter1_stats][:takedowns_attempted] =
-            td_data[:fighter1][:attempted]
-          round_stats[:fighter2_stats][:takedowns] = td_data[:fighter2][:landed]
-          round_stats[:fighter2_stats][:takedowns_attempted] =
-            td_data[:fighter2][:attempted]
-        end
-
-        # Sub attempts (index 7)
-        if cells[7]
-          sub_data = parse_dual_stat_cell(cells[7].text)
-          round_stats[:fighter1_stats][:submission_attempts] =
-            sub_data[:fighter1]
-          round_stats[:fighter2_stats][:submission_attempts] =
-            sub_data[:fighter2]
-        end
-
-        # Reversals (index 8)
-        if cells[8]
-          rev_data = parse_dual_stat_cell(cells[8].text)
-          round_stats[:fighter1_stats][:reversals] = rev_data[:fighter1]
-          round_stats[:fighter2_stats][:reversals] = rev_data[:fighter2]
-        end
-
-        # Control time (index 9)
-        if cells[9]
-          ctrl_data = parse_dual_control_time_cell(cells[9].text)
-          round_stats[:fighter1_stats][:control_time_seconds] =
-            ctrl_data[:fighter1]
-          round_stats[:fighter2_stats][:control_time_seconds] =
-            ctrl_data[:fighter2]
-        end
-
-        rounds << round_stats
-      end
+    data_rows.each_with_index do |row, idx|
+      round_stats = build_round_stats(row, idx + 1)
+      rounds << round_stats
     end
 
-    # Process significant strikes section if exists
+    rounds
+  end
+
+  def build_round_stats(row, round_num)
+    cells = row.css("td")
+    round_stats = initialize_round_stats(round_num)
+    populate_round_stats(cells, round_stats)
+    round_stats
+  end
+
+  def populate_round_stats(cells, round_stats)
+    stat_parsers = {
+      1 => :parse_knockdowns,
+      2 => :parse_significant_strikes,
+      4 => :parse_total_strikes,
+      5 => :parse_takedowns,
+      7 => :parse_submission_attempts,
+      8 => :parse_reversals,
+      9 => :parse_control_time
+    }
+
+    stat_parsers.each do |index, parser_method|
+      send(parser_method, cells[index], round_stats) if cells[index]
+    end
+  end
+
+  def initialize_round_stats(round_num)
+    {
+      round: round_num,
+      fighter1_stats: {},
+      fighter2_stats: {}
+    }
+  end
+
+  def parse_knockdowns(cell, round_stats)
+    kd_data = parse_dual_stat_cell(cell.text)
+    round_stats[:fighter1_stats][:knockdowns] = kd_data[:fighter1]
+    round_stats[:fighter2_stats][:knockdowns] = kd_data[:fighter2]
+  end
+
+  def parse_significant_strikes(cell, round_stats)
+    sig_str_data = parse_dual_of_stat_cell(cell.text)
+    set_strike_stats(round_stats, :significant_strikes, sig_str_data)
+  end
+
+  def parse_total_strikes(cell, round_stats)
+    total_str_data = parse_dual_of_stat_cell(cell.text)
+    set_strike_stats(round_stats, :total_strikes, total_str_data)
+  end
+
+  def parse_takedowns(cell, round_stats)
+    td_data = parse_dual_of_stat_cell(cell.text)
+    set_takedown_stats(round_stats, td_data)
+  end
+
+  def parse_submission_attempts(cell, round_stats)
+    sub_data = parse_dual_stat_cell(cell.text)
+    round_stats[:fighter1_stats][:submission_attempts] = sub_data[:fighter1]
+    round_stats[:fighter2_stats][:submission_attempts] = sub_data[:fighter2]
+  end
+
+  def parse_reversals(cell, round_stats)
+    rev_data = parse_dual_stat_cell(cell.text)
+    round_stats[:fighter1_stats][:reversals] = rev_data[:fighter1]
+    round_stats[:fighter2_stats][:reversals] = rev_data[:fighter2]
+  end
+
+  def parse_control_time(cell, round_stats)
+    ctrl_data = parse_dual_control_time_cell(cell.text)
+    round_stats[:fighter1_stats][:control_time_seconds] = ctrl_data[:fighter1]
+    round_stats[:fighter2_stats][:control_time_seconds] = ctrl_data[:fighter2]
+  end
+
+  def set_strike_stats(round_stats, stat_type, data)
+    round_stats[:fighter1_stats][stat_type] = data[:fighter1][:landed]
+    round_stats[:fighter1_stats][:"#{stat_type}_attempted"] =
+      data[:fighter1][:attempted]
+    round_stats[:fighter2_stats][stat_type] = data[:fighter2][:landed]
+    round_stats[:fighter2_stats][:"#{stat_type}_attempted"] =
+      data[:fighter2][:attempted]
+  end
+
+  def set_takedown_stats(round_stats, data)
+    round_stats[:fighter1_stats][:takedowns] = data[:fighter1][:landed]
+    round_stats[:fighter1_stats][:takedowns_attempted] =
+      data[:fighter1][:attempted]
+    round_stats[:fighter2_stats][:takedowns] = data[:fighter2][:landed]
+    round_stats[:fighter2_stats][:takedowns_attempted] =
+      data[:fighter2][:attempted]
+  end
+
+  def add_significant_strike_details(per_round_sections, rounds)
     sig_strikes_section = per_round_sections.find do |s|
       s.text.include?("Significant Strikes")
     end
-    if sig_strikes_section
-      sig_table = sig_strikes_section.css("table.b-fight-details__table").first
-      add_strike_details_from_per_round_table(sig_table, rounds) if sig_table
-    end
+    return unless sig_strikes_section
 
-    rounds.sort_by { |r| r[:round] }
+    sig_table = sig_strikes_section.css("table.b-fight-details__table").first
+    add_strike_details_from_per_round_table(sig_table, rounds) if sig_table
   end
 
   def parse_dual_stat_cell(text)
@@ -505,166 +582,118 @@ class UfcStatsScraper
   end
 
   def parse_dual_of_stat_cell(text)
-    # Parse cells like "11 of 23\n\n\n7 of 15"
     lines = text.split("\n").map(&:strip).reject(&:empty?)
 
-    fighter1 = { landed: 0, attempted: 0 }
-    fighter2 = { landed: 0, attempted: 0 }
+    {
+      fighter1: parse_of_stat_line(lines[0]),
+      fighter2: parse_of_stat_line(lines[1])
+    }
+  end
 
-    if lines[0]&.match(/(\d+)\s*of\s*(\d+)/)
-      fighter1[:landed] = ::Regexp.last_match(1).to_i
-      fighter1[:attempted] = ::Regexp.last_match(2).to_i
-    end
+  def parse_of_stat_line(line)
+    return { landed: 0, attempted: 0 } unless line&.match(/(\d+)\s*of\s*(\d+)/)
 
-    if lines[1]&.match(/(\d+)\s*of\s*(\d+)/)
-      fighter2[:landed] = ::Regexp.last_match(1).to_i
-      fighter2[:attempted] = ::Regexp.last_match(2).to_i
-    end
-
-    { fighter1: fighter1, fighter2: fighter2 }
+    {
+      landed: ::Regexp.last_match(1).to_i,
+      attempted: ::Regexp.last_match(2).to_i
+    }
   end
 
   def parse_dual_control_time_cell(text)
-    # Parse cells like "1:09\n\n\n0:00"
     lines = text.split("\n").map(&:strip).reject(&:empty?)
 
-    fighter1_time = 0
-    fighter2_time = 0
+    {
+      fighter1: parse_time_to_seconds(lines[0]),
+      fighter2: parse_time_to_seconds(lines[1])
+    }
+  end
 
-    if lines[0]&.match(/(\d+):(\d+)/)
-      fighter1_time = (::Regexp.last_match(1).to_i * 60) + ::Regexp.last_match(2).to_i
-    end
+  def parse_time_to_seconds(time_str)
+    return 0 unless time_str&.match(/(\d+):(\d+)/)
 
-    if lines[1]&.match(/(\d+):(\d+)/)
-      fighter2_time = (::Regexp.last_match(1).to_i * 60) + ::Regexp.last_match(2).to_i
-    end
-
-    { fighter1: fighter1_time, fighter2: fighter2_time }
+    minutes = ::Regexp.last_match(1).to_i
+    seconds = ::Regexp.last_match(2).to_i
+    (minutes * 60) + seconds
   end
 
   def add_strike_details_from_per_round_table(table, rounds)
-    # Similar structure - each row is a round
     data_rows = table.css("tr").select { |tr| tr.css("td").any? }
 
     data_rows.each_with_index do |row, idx|
-      round_num = idx + 1
-      round_entry = rounds.find { |r| r[:round] == round_num }
-      next unless round_entry
-
-      cells = row.css("td")
-
-      # Head strikes (index 3)
-      if cells[3]
-        head_data = parse_dual_of_stat_cell(cells[3].text)
-        round_entry[:fighter1_stats][:head_strikes] =
-          head_data[:fighter1][:landed]
-        round_entry[:fighter1_stats][:head_strikes_attempted] =
-          head_data[:fighter1][:attempted]
-        round_entry[:fighter2_stats][:head_strikes] =
-          head_data[:fighter2][:landed]
-        round_entry[:fighter2_stats][:head_strikes_attempted] =
-          head_data[:fighter2][:attempted]
-      end
-
-      # Body strikes (index 4)
-      if cells[4]
-        body_data = parse_dual_of_stat_cell(cells[4].text)
-        round_entry[:fighter1_stats][:body_strikes] =
-          body_data[:fighter1][:landed]
-        round_entry[:fighter1_stats][:body_strikes_attempted] =
-          body_data[:fighter1][:attempted]
-        round_entry[:fighter2_stats][:body_strikes] =
-          body_data[:fighter2][:landed]
-        round_entry[:fighter2_stats][:body_strikes_attempted] =
-          body_data[:fighter2][:attempted]
-      end
-
-      # Leg strikes (index 5)
-      if cells[5]
-        leg_data = parse_dual_of_stat_cell(cells[5].text)
-        round_entry[:fighter1_stats][:leg_strikes] =
-          leg_data[:fighter1][:landed]
-        round_entry[:fighter1_stats][:leg_strikes_attempted] =
-          leg_data[:fighter1][:attempted]
-        round_entry[:fighter2_stats][:leg_strikes] =
-          leg_data[:fighter2][:landed]
-        round_entry[:fighter2_stats][:leg_strikes_attempted] =
-          leg_data[:fighter2][:attempted]
-      end
-
-      # Distance strikes (index 6)
-      if cells[6]
-        distance_data = parse_dual_of_stat_cell(cells[6].text)
-        round_entry[:fighter1_stats][:distance_strikes] =
-          distance_data[:fighter1][:landed]
-        round_entry[:fighter1_stats][:distance_strikes_attempted] =
-          distance_data[:fighter1][:attempted]
-        round_entry[:fighter2_stats][:distance_strikes] =
-          distance_data[:fighter2][:landed]
-        round_entry[:fighter2_stats][:distance_strikes_attempted] =
-          distance_data[:fighter2][:attempted]
-      end
-
-      # Clinch strikes (index 7)
-      if cells[7]
-        clinch_data = parse_dual_of_stat_cell(cells[7].text)
-        round_entry[:fighter1_stats][:clinch_strikes] =
-          clinch_data[:fighter1][:landed]
-        round_entry[:fighter1_stats][:clinch_strikes_attempted] =
-          clinch_data[:fighter1][:attempted]
-        round_entry[:fighter2_stats][:clinch_strikes] =
-          clinch_data[:fighter2][:landed]
-        round_entry[:fighter2_stats][:clinch_strikes_attempted] =
-          clinch_data[:fighter2][:attempted]
-      end
-
-      # Ground strikes (index 8)
-      next unless cells[8]
-
-      ground_data = parse_dual_of_stat_cell(cells[8].text)
-      round_entry[:fighter1_stats][:ground_strikes] =
-        ground_data[:fighter1][:landed]
-      round_entry[:fighter1_stats][:ground_strikes_attempted] =
-        ground_data[:fighter1][:attempted]
-      round_entry[:fighter2_stats][:ground_strikes] =
-        ground_data[:fighter2][:landed]
-      round_entry[:fighter2_stats][:ground_strikes_attempted] =
-        ground_data[:fighter2][:attempted]
+      process_strike_details_row(row, idx + 1, rounds)
     end
   end
 
+  def process_strike_details_row(row, round_num, rounds)
+    round_entry = rounds.find { |r| r[:round] == round_num }
+    return unless round_entry
+
+    cells = row.css("td")
+    add_all_strike_types_to_round(cells, round_entry)
+  end
+
+  def add_all_strike_types_to_round(cells, round_entry)
+    strike_mappings = {
+      3 => :head_strikes,
+      4 => :body_strikes,
+      5 => :leg_strikes,
+      6 => :distance_strikes,
+      7 => :clinch_strikes,
+      8 => :ground_strikes
+    }
+
+    strike_mappings.each do |index, strike_type|
+      add_strike_type(cells[index], round_entry, strike_type) if cells[index]
+    end
+  end
+
+  def add_strike_type(cell, round_entry, strike_type)
+    strike_data = parse_dual_of_stat_cell(cell.text)
+    set_strike_stats(round_entry, strike_type, strike_data)
+  end
+
   def parse_fighter_stats(cells, fighter_index)
-    # Parse stats from table cells
-    # Format: "X of Y / A of B" where first is fighter1, second is fighter2
+    stats_data = extract_stat_texts(cells)
+    parsed_stats = parse_all_stats(stats_data, fighter_index)
+    build_fighter_stats_hash(parsed_stats)
+  end
 
-    kd_text = cells[0] # "0 / 0"
-    sig_str_text = cells[1] # "25 of 60 / 17 of 55"
-    total_str_text = cells[3] # "145 of 208 / 23 of 63"
-    td_text = cells[4] # "2 of 2 / 0 of 0"
-    sub_text = cells[6] # "0 / 0"
-    rev_text = cells[7] # "0 / 0"
-    ctrl_text = cells[8] # "6:17 / 0:00"
-
-    # Split by "/" to get fighter-specific data
-    kd = parse_single_stat(kd_text, fighter_index)
-    sig_str = parse_of_stat(sig_str_text, fighter_index)
-    total_str = parse_of_stat(total_str_text, fighter_index)
-    td = parse_of_stat(td_text, fighter_index)
-    sub = parse_single_stat(sub_text, fighter_index)
-    rev = parse_single_stat(rev_text, fighter_index)
-    ctrl = parse_control_time(ctrl_text, fighter_index)
-
+  def extract_stat_texts(cells)
     {
-      knockdowns: kd,
-      significant_strikes: sig_str[:landed],
-      significant_strikes_attempted: sig_str[:attempted],
-      total_strikes: total_str[:landed],
-      total_strikes_attempted: total_str[:attempted],
-      takedowns: td[:landed],
-      takedowns_attempted: td[:attempted],
-      submission_attempts: sub,
-      reversals: rev,
-      control_time_seconds: ctrl
+      kd: cells[0],
+      sig_str: cells[1],
+      total_str: cells[3],
+      td: cells[4],
+      sub: cells[6],
+      rev: cells[7],
+      ctrl: cells[8]
+    }
+  end
+
+  def parse_all_stats(stats_data, fighter_index)
+    {
+      kd: parse_single_stat(stats_data[:kd], fighter_index),
+      sig_str: parse_of_stat(stats_data[:sig_str], fighter_index),
+      total_str: parse_of_stat(stats_data[:total_str], fighter_index),
+      td: parse_of_stat(stats_data[:td], fighter_index),
+      sub: parse_single_stat(stats_data[:sub], fighter_index),
+      rev: parse_single_stat(stats_data[:rev], fighter_index),
+      ctrl: parse_control_time(stats_data[:ctrl], fighter_index)
+    }
+  end
+
+  def build_fighter_stats_hash(parsed_stats)
+    {
+      knockdowns: parsed_stats[:kd],
+      significant_strikes: parsed_stats[:sig_str][:landed],
+      significant_strikes_attempted: parsed_stats[:sig_str][:attempted],
+      total_strikes: parsed_stats[:total_str][:landed],
+      total_strikes_attempted: parsed_stats[:total_str][:attempted],
+      takedowns: parsed_stats[:td][:landed],
+      takedowns_attempted: parsed_stats[:td][:attempted],
+      submission_attempts: parsed_stats[:sub],
+      reversals: parsed_stats[:rev],
+      control_time_seconds: parsed_stats[:ctrl]
     }
   end
 
@@ -684,19 +713,6 @@ class UfcStatsScraper
       }
     else
       { landed: 0, attempted: 0 }
-    end
-  end
-
-  def parse_control_time(text, fighter_index)
-    parts = text.split("/").map(&:strip)
-    time_str = parts[fighter_index]
-
-    if time_str&.match(/(\d+):(\d+)/)
-      minutes = ::Regexp.last_match(1).to_i
-      seconds = ::Regexp.last_match(2).to_i
-      (minutes * 60) + seconds
-    else
-      0
     end
   end
 
@@ -722,33 +738,77 @@ class UfcStatsScraper
   )
     stats = round_data[stats_key]
 
+    base_stats = build_base_fight_stats(
+      event_data,
+      fight,
+      round_data,
+      fighter_name,
+      stats
+    )
+    strike_stats = build_strike_stats(stats)
+    location_stats = build_location_strike_stats(stats)
+
+    base_stats.merge(strike_stats).merge(location_stats)
+  end
+
+  def build_base_fight_stats(event_data, fight, round_data, fighter_name, stats)
     {
       "EVENT" => event_data[:name],
       "BOUT" => determine_bout_type(fight),
       "ROUND" => round_data[:round],
       "FIGHTER" => fighter_name,
       "KD" => stats[:knockdowns],
-      "SIG.STR." => "#{stats[:significant_strikes]} of #{stats[:significant_strikes_attempted]}",
+      "SUB.ATT" => stats[:submission_attempts],
+      "REV." => stats[:reversals],
+      "CTRL" => format_control_time(stats[:control_time_seconds])
+    }
+  end
+
+  def build_strike_stats(stats)
+    {
+      "SIG.STR." => format_strike_stat(
+        stats[:significant_strikes],
+        stats[:significant_strikes_attempted]
+      ),
       "SIG.STR. %" => calculate_percentage(
         stats[:significant_strikes],
         stats[:significant_strikes_attempted]
       ),
-      "TOTAL STR." => "#{stats[:total_strikes]} of #{stats[:total_strikes_attempted]}",
-      "TD" => "#{stats[:takedowns]} of #{stats[:takedowns_attempted]}",
-      "TD %" => calculate_percentage(
+      "TOTAL STR." => format_strike_stat(
+        stats[:total_strikes],
+        stats[:total_strikes_attempted]
+      ),
+      "TD" => format_strike_stat(
         stats[:takedowns],
         stats[:takedowns_attempted]
       ),
-      "SUB.ATT" => stats[:submission_attempts],
-      "REV." => stats[:reversals],
-      "CTRL" => format_control_time(stats[:control_time_seconds]),
-      "HEAD" => "#{stats[:head_strikes]} of #{stats[:head_strikes_attempted]}",
-      "BODY" => "#{stats[:body_strikes]} of #{stats[:body_strikes_attempted]}",
-      "LEG" => "#{stats[:leg_strikes]} of #{stats[:leg_strikes_attempted]}",
-      "DISTANCE" => "#{stats[:distance_strikes]} of #{stats[:distance_strikes_attempted]}",
-      "CLINCH" => "#{stats[:clinch_strikes]} of #{stats[:clinch_strikes_attempted]}",
-      "GROUND" => "#{stats[:ground_strikes]} of #{stats[:ground_strikes_attempted]}"
+      "TD %" => calculate_percentage(
+        stats[:takedowns],
+        stats[:takedowns_attempted]
+      )
     }
+  end
+
+  def build_location_strike_stats(stats)
+    strike_types = %i[
+      head
+      body
+      leg
+      distance
+      clinch
+      ground
+    ]
+
+    strike_types.each_with_object({}) do |type, hash|
+      key = type.to_s.upcase
+      landed_key = :"#{type}_strikes"
+      attempted_key = :"#{type}_strikes_attempted"
+      hash[key] = format_strike_stat(stats[landed_key], stats[attempted_key])
+    end
+  end
+
+  def format_strike_stat(landed, attempted)
+    "#{landed} of #{attempted}"
   end
 
   def determine_bout_type(fight)

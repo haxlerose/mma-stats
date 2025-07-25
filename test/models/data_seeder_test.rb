@@ -16,11 +16,24 @@ class DataSeederTest < ActiveSupport::TestCase
     stub_request(:get, EventImporter::CSV_URL)
       .to_return(status: 200, body: "EVENT,DATE,LOCATION\n", headers: {})
     stub_request(:get, FighterImporter::CSV_URL)
-      .to_return(status: 200, body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n",
+        headers: {}
+      )
     stub_request(:get, FightImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME,TIME_FORMAT,REFEREE,DETAILS\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME," \
+              "TIME_FORMAT,REFEREE,DETAILS\n",
+        headers: {}
+      )
     stub_request(:get, FightStatImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n",
+        headers: {}
+      )
 
     # Track which importers were called
     import_calls = []
@@ -33,25 +46,37 @@ class DataSeederTest < ActiveSupport::TestCase
 
     EventImporter.define_singleton_method(:new) do
       mock = Object.new
-      mock.define_singleton_method(:import) { import_calls << :events; [] }
+      mock.define_singleton_method(:import) do
+        import_calls << :events
+        []
+      end
       mock
     end
 
     FighterImporter.define_singleton_method(:new) do
       mock = Object.new
-      mock.define_singleton_method(:import) { import_calls << :fighters; [] }
+      mock.define_singleton_method(:import) do
+        import_calls << :fighters
+        []
+      end
       mock
     end
 
     FightImporter.define_singleton_method(:new) do
       mock = Object.new
-      mock.define_singleton_method(:import) { import_calls << :fights; [] }
+      mock.define_singleton_method(:import) do
+        import_calls << :fights
+        []
+      end
       mock
     end
 
     FightStatImporter.define_singleton_method(:new) do
       mock = Object.new
-      mock.define_singleton_method(:import) { import_calls << :fight_stats; [] }
+      mock.define_singleton_method(:import) do
+        import_calls << :fight_stats
+        []
+      end
       mock
     end
 
@@ -71,11 +96,24 @@ class DataSeederTest < ActiveSupport::TestCase
     stub_request(:get, EventImporter::CSV_URL)
       .to_return(status: 200, body: "EVENT,DATE,LOCATION\n", headers: {})
     stub_request(:get, FighterImporter::CSV_URL)
-      .to_return(status: 200, body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n",
+        headers: {}
+      )
     stub_request(:get, FightImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME,TIME_FORMAT,REFEREE,DETAILS\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME," \
+              "TIME_FORMAT,REFEREE,DETAILS\n",
+        headers: {}
+      )
     stub_request(:get, FightStatImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n",
+        headers: {}
+      )
 
     # Create test data to verify counts
     Event.create!(name: "UFC 1", date: Time.zone.today, location: "Denver, CO")
@@ -130,11 +168,24 @@ class DataSeederTest < ActiveSupport::TestCase
     stub_request(:get, EventImporter::CSV_URL)
       .to_return(status: 200, body: "EVENT,DATE,LOCATION\n", headers: {})
     stub_request(:get, FighterImporter::CSV_URL)
-      .to_return(status: 200, body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n",
+        headers: {}
+      )
     stub_request(:get, FightImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME,TIME_FORMAT,REFEREE,DETAILS\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME," \
+              "TIME_FORMAT,REFEREE,DETAILS\n",
+        headers: {}
+      )
     stub_request(:get, FightStatImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n",
+        headers: {}
+      )
 
     # Simulate an error in one of the importers
     original_event_new = EventImporter.method(:new)
@@ -160,11 +211,24 @@ class DataSeederTest < ActiveSupport::TestCase
     stub_request(:get, EventImporter::CSV_URL)
       .to_return(status: 200, body: "EVENT,DATE,LOCATION\n", headers: {})
     stub_request(:get, FighterImporter::CSV_URL)
-      .to_return(status: 200, body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n",
+        headers: {}
+      )
     stub_request(:get, FightImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME,TIME_FORMAT,REFEREE,DETAILS\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME," \
+              "TIME_FORMAT,REFEREE,DETAILS\n",
+        headers: {}
+      )
     stub_request(:get, FightStatImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n",
+        headers: {}
+      )
 
     # Mock all importers
     original_event_new = EventImporter.method(:new)
@@ -222,11 +286,24 @@ class DataSeederTest < ActiveSupport::TestCase
     stub_request(:get, EventImporter::CSV_URL)
       .to_return(status: 200, body: "EVENT,DATE,LOCATION\n", headers: {})
     stub_request(:get, FighterImporter::CSV_URL)
-      .to_return(status: 200, body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "FIGHTER,HEIGHT,WEIGHT,REACH,STANCE,DOB\n",
+        headers: {}
+      )
     stub_request(:get, FightImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME,TIME_FORMAT,REFEREE,DETAILS\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,OUTCOME,WEIGHTCLASS,METHOD,ROUND,TIME," \
+              "TIME_FORMAT,REFEREE,DETAILS\n",
+        headers: {}
+      )
     stub_request(:get, FightStatImporter::CSV_URL)
-      .to_return(status: 200, body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n", headers: {})
+      .to_return(
+        status: 200,
+        body: "EVENT,BOUT,ROUND,FIGHTER,KD,SIG_STR,SIG_STR_ATTEMPT\n",
+        headers: {}
+      )
 
     # Mock EventImporter to fail
     original_event_new = EventImporter.method(:new)

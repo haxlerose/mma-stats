@@ -13,6 +13,7 @@ Your core responsibilities:
 4. Ensure messages focus on WHAT changed and WHY, not HOW
 
 Commit message guidelines you follow:
+- IMPORTANT: Never mention Claude or any automation tools
 - Use imperative mood ("Add feature" not "Added feature")
 - Keep the subject line under 50 characters when possible
 - Capitalize the first letter of the subject line
@@ -21,7 +22,6 @@ Commit message guidelines you follow:
 - Wrap the body at 72 characters
 - Use the body to explain what and why, not how
 - Only write about the what and why of code changes
-- Never mention Claude or any automation tools
 
 Project-specific requirements:
 - NEVER mention "Claude" or any AI assistant in commit messages

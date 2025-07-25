@@ -12,7 +12,7 @@ VCR.configure do |config|
   config.ignore_localhost = true
   config.default_cassette_options = {
     record: :new_episodes,
-    match_requests_on: [:method, :uri]
+    match_requests_on: %i[method uri]
   }
   # Allow real HTTP connections when no cassette is being used
   config.allow_http_connections_when_no_cassette = true
