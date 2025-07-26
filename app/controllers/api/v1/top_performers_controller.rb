@@ -35,9 +35,25 @@ class Api::V1::TopPerformersController < ApplicationController
   end
 
   def fetch_top_performers
-    query_class = SCOPE_TO_QUERY_CLASS[params[:scope]]
-    query = create_query(query_class, params[:category])
-    query.call
+    cache_key = build_cache_key
+    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+      query_class = SCOPE_TO_QUERY_CLASS[params[:scope]]
+      query = create_query(query_class, params[:category])
+      query.call
+    end
+  end
+
+  def build_cache_key
+    # Cache key based on scope, category, and last updated timestamp
+    last_updated = [
+      FightStat.maximum(:updated_at),
+      Fighter.maximum(:updated_at),
+      Fight.maximum(:updated_at),
+      Event.maximum(:updated_at)
+    ].compact.max
+
+    "top_performers/#{params[:scope]}/#{params[:category]}/" \
+      "#{last_updated&.to_i}"
   end
 
   def build_response(results)

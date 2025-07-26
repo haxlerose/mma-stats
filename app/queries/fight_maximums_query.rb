@@ -70,27 +70,38 @@ class FightMaximumsQuery
           ROW_NUMBER() OVER (ORDER BY ft.total_value DESC) as rank
         FROM fight_totals ft
         JOIN fights f ON ft.fight_id = f.id
+      ),
+      top_fights AS (
+        SELECT *
+        FROM ranked_fights
+        WHERE rank <= 10
+      ),
+      fight_opponents AS (
+        SELECT DISTINCT
+          fs1.fight_id,
+          fs1.fighter_id AS fighter1_id,
+          fs2.fighter_id AS fighter2_id,
+          f2.name AS opponent_name
+        FROM fight_stats fs1
+        JOIN fight_stats fs2 ON fs1.fight_id = fs2.fight_id
+          AND fs1.fighter_id != fs2.fighter_id
+        JOIN fighters f2 ON fs2.fighter_id = f2.id
+        WHERE fs1.fight_id IN (SELECT fight_id FROM top_fights)
       )
       SELECT
-        rf.fighter_id,
+        tf.fighter_id,
         f.name AS fighter_name,
-        rf.total_value AS value,
-        (
-          SELECT f2.name
-          FROM fight_stats fs2
-          JOIN fighters f2 ON fs2.fighter_id = f2.id
-          WHERE fs2.fight_id = rf.fight_id
-            AND fs2.fighter_id != rf.fighter_id
-          LIMIT 1
-        ) AS opponent_name,
+        tf.total_value AS value,
+        fo.opponent_name,
         e.name AS event_name,
         e.date AS event_date,
-        rf.fight_id
-      FROM ranked_fights rf
-      JOIN fighters f ON rf.fighter_id = f.id
-      JOIN events e ON rf.event_id = e.id
-      WHERE rf.rank <= 10
-      ORDER BY rf.total_value DESC
+        tf.fight_id
+      FROM top_fights tf
+      JOIN fighters f ON tf.fighter_id = f.id
+      JOIN events e ON tf.event_id = e.id
+      LEFT JOIN fight_opponents fo ON tf.fight_id = fo.fight_id
+        AND tf.fighter_id = fo.fighter1_id
+      ORDER BY tf.total_value DESC
     SQL
   end
 

@@ -60,6 +60,30 @@ class PerMinuteQuery
   end
 
   def fighters_with_stats
+    if materialized_view_exists?
+      results = ActiveRecord::Base.connection.execute(build_optimized_query)
+      results.map do |row|
+        {
+          fighter_id: row["fighter_id"],
+          fighter_name: row["fighter_name"],
+          total_fights: row["fight_count"],
+          total_time_seconds: row["total_time_seconds"],
+          total_statistic: row["stat_total"]
+        }
+      end
+    else
+      # Fallback to the original ActiveRecord implementation
+      fighters_with_stats_fallback
+    end
+  end
+
+  def materialized_view_exists?
+    ActiveRecord::Base.connection.execute(
+      "SELECT 1 FROM pg_matviews WHERE matviewname = 'fight_durations'"
+    ).any?
+  end
+
+  def fighters_with_stats_fallback
     Fighter
       .select(
         "fighters.id",
@@ -80,6 +104,50 @@ class PerMinuteQuery
           total_statistic: fighter.stat_total.to_i
         }
       end
+  end
+
+  def build_optimized_query
+    <<~SQL.squish
+      WITH fighter_fight_times AS (
+        SELECT
+          fs.fighter_id,
+          fs.fight_id,
+          fs.round as stat_round,
+          fd.ending_round,
+          fd.duration_seconds,
+          CASE
+            WHEN fs.round < fd.ending_round THEN 300
+            WHEN fs.round = fd.ending_round THEN
+              fd.duration_seconds - ((fd.ending_round - 1) * 300)
+            ELSE 0
+          END as round_duration_seconds
+        FROM fight_stats fs
+        JOIN fight_durations fd ON fs.fight_id = fd.fight_id
+      ),
+      fighter_stats_aggregated AS (
+        SELECT
+          fs.fighter_id,
+          f.name as fighter_name,
+          COUNT(DISTINCT fs.fight_id) as fight_count,
+          SUM(fft.round_duration_seconds) as total_time_seconds,
+          SUM(fs.#{@statistic_type}) as stat_total
+        FROM fight_stats fs
+        JOIN fighters f ON fs.fighter_id = f.id
+        JOIN fighter_fight_times fft ON fs.fighter_id = fft.fighter_id
+          AND fs.fight_id = fft.fight_id
+          AND fs.round = fft.stat_round
+        GROUP BY fs.fighter_id, f.name
+        HAVING COUNT(DISTINCT fs.fight_id) >= #{MINIMUM_FIGHTS}
+          AND SUM(fft.round_duration_seconds) > 0
+      )
+      SELECT
+        fighter_id,
+        fighter_name,
+        fight_count,
+        total_time_seconds,
+        stat_total
+      FROM fighter_stats_aggregated
+    SQL
   end
 
   def calculate_fight_time_sql

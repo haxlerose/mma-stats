@@ -64,28 +64,39 @@ class RoundMaximumsQuery
         JOIN fights f ON fs.fight_id = f.id
         WHERE fs.#{statistic} IS NOT NULL
           AND fs.#{statistic} > 0
+      ),
+      top_rounds AS (
+        SELECT *
+        FROM ranked_rounds
+        WHERE rank <= 10
+      ),
+      fight_opponents AS (
+        SELECT DISTINCT
+          fs1.fight_id,
+          fs1.fighter_id AS fighter1_id,
+          fs2.fighter_id AS fighter2_id,
+          f2.name AS opponent_name
+        FROM fight_stats fs1
+        JOIN fight_stats fs2 ON fs1.fight_id = fs2.fight_id
+          AND fs1.fighter_id != fs2.fighter_id
+        JOIN fighters f2 ON fs2.fighter_id = f2.id
+        WHERE fs1.fight_id IN (SELECT fight_id FROM top_rounds)
       )
       SELECT
-        rr.fighter_id,
+        tr.fighter_id,
         f.name AS fighter_name,
-        rr.value,
-        rr.round,
-        (
-          SELECT f2.name
-          FROM fight_stats fs2
-          JOIN fighters f2 ON fs2.fighter_id = f2.id
-          WHERE fs2.fight_id = rr.fight_id
-            AND fs2.fighter_id != rr.fighter_id
-          LIMIT 1
-        ) AS opponent_name,
+        tr.value,
+        tr.round,
+        fo.opponent_name,
         e.name AS event_name,
         e.date AS event_date,
-        rr.fight_id
-      FROM ranked_rounds rr
-      JOIN fighters f ON rr.fighter_id = f.id
-      JOIN events e ON rr.event_id = e.id
-      WHERE rr.rank <= 10
-      ORDER BY rr.value DESC
+        tr.fight_id
+      FROM top_rounds tr
+      JOIN fighters f ON tr.fighter_id = f.id
+      JOIN events e ON tr.event_id = e.id
+      LEFT JOIN fight_opponents fo ON tr.fight_id = fo.fight_id
+        AND tr.fighter_id = fo.fighter1_id
+      ORDER BY tr.value DESC
     SQL
   end
 
