@@ -168,3 +168,122 @@ export interface StatisticalHighlight {
 export interface StatisticalHighlightsResponse {
   highlights: StatisticalHighlight[];
 }
+
+// Top Performers types
+export type TopPerformerScope = "career" | "fight" | "round" | "per_minute";
+
+export type TopPerformerCategory =
+  | "knockdowns"
+  | "significant_strikes"
+  | "significant_strikes_attempted"
+  | "total_strikes"
+  | "total_strikes_attempted"
+  | "head_strikes"
+  | "head_strikes_attempted"
+  | "body_strikes"
+  | "body_strikes_attempted"
+  | "leg_strikes"
+  | "leg_strikes_attempted"
+  | "distance_strikes"
+  | "distance_strikes_attempted"
+  | "clinch_strikes"
+  | "clinch_strikes_attempted"
+  | "ground_strikes"
+  | "ground_strikes_attempted"
+  | "takedowns"
+  | "takedowns_attempted"
+  | "submission_attempts"
+  | "reversals"
+  | "control_time_seconds";
+
+export interface TopPerformer {
+  fighter_id: number;
+  fighter_name: string;
+  fight_id?: number | null;
+  // Career scope
+  total_knockdowns?: number;
+  total_significant_strikes?: number;
+  total_significant_strikes_attempted?: number;
+  total_total_strikes?: number;
+  total_total_strikes_attempted?: number;
+  total_head_strikes?: number;
+  total_head_strikes_attempted?: number;
+  total_body_strikes?: number;
+  total_body_strikes_attempted?: number;
+  total_leg_strikes?: number;
+  total_leg_strikes_attempted?: number;
+  total_distance_strikes?: number;
+  total_distance_strikes_attempted?: number;
+  total_clinch_strikes?: number;
+  total_clinch_strikes_attempted?: number;
+  total_ground_strikes?: number;
+  total_ground_strikes_attempted?: number;
+  total_takedowns?: number;
+  total_takedowns_attempted?: number;
+  total_submission_attempts?: number;
+  total_reversals?: number;
+  total_control_time_seconds?: number;
+  // Fight/Round scope
+  max_knockdowns?: number;
+  max_significant_strikes?: number;
+  max_significant_strikes_attempted?: number;
+  max_total_strikes?: number;
+  max_total_strikes_attempted?: number;
+  max_head_strikes?: number;
+  max_head_strikes_attempted?: number;
+  max_body_strikes?: number;
+  max_body_strikes_attempted?: number;
+  max_leg_strikes?: number;
+  max_leg_strikes_attempted?: number;
+  max_distance_strikes?: number;
+  max_distance_strikes_attempted?: number;
+  max_clinch_strikes?: number;
+  max_clinch_strikes_attempted?: number;
+  max_ground_strikes?: number;
+  max_ground_strikes_attempted?: number;
+  max_takedowns?: number;
+  max_takedowns_attempted?: number;
+  max_submission_attempts?: number;
+  max_reversals?: number;
+  max_control_time_seconds?: number;
+  event_name?: string;
+  opponent_name?: string;
+  round?: number;
+  // Per minute scope
+  knockdowns_per_minute?: number;
+  significant_strikes_per_minute?: number;
+  significant_strikes_attempted_per_minute?: number;
+  total_strikes_per_minute?: number;
+  total_strikes_attempted_per_minute?: number;
+  head_strikes_per_minute?: number;
+  head_strikes_attempted_per_minute?: number;
+  body_strikes_per_minute?: number;
+  body_strikes_attempted_per_minute?: number;
+  leg_strikes_per_minute?: number;
+  leg_strikes_attempted_per_minute?: number;
+  distance_strikes_per_minute?: number;
+  distance_strikes_attempted_per_minute?: number;
+  clinch_strikes_per_minute?: number;
+  clinch_strikes_attempted_per_minute?: number;
+  ground_strikes_per_minute?: number;
+  ground_strikes_attempted_per_minute?: number;
+  takedowns_per_minute?: number;
+  takedowns_attempted_per_minute?: number;
+  submission_attempts_per_minute?: number;
+  reversals_per_minute?: number;
+  control_time_seconds_per_minute?: number;
+  fight_duration_minutes?: number;
+}
+
+export interface TopPerformersResponse {
+  top_performers: TopPerformer[];
+  meta: {
+    scope: TopPerformerScope;
+    category: TopPerformerCategory;
+  };
+}
+
+export interface TopPerformersSearchParams {
+  scope: TopPerformerScope;
+  category: TopPerformerCategory;
+}

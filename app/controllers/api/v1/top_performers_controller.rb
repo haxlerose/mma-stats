@@ -1,0 +1,125 @@
+# frozen_string_literal: true
+
+class Api::V1::TopPerformersController < ApplicationController
+  VALID_SCOPES = %w[career fight round per_minute].freeze
+
+  SCOPE_TO_QUERY_CLASS = {
+    "career" => CareerTotalsQuery,
+    "fight" => FightMaximumsQuery,
+    "round" => RoundMaximumsQuery,
+    "per_minute" => PerMinuteQuery
+  }.freeze
+
+  def index
+    validate_parameters!
+    results = fetch_top_performers
+    render json: build_response(results)
+  rescue ArgumentError => e
+    render json: { error: e.message }, status: :bad_request
+  end
+
+  private
+
+  def validate_parameters!
+    raise ArgumentError, "scope parameter is required" if params[:scope].blank?
+
+    if params[:category].blank?
+      raise ArgumentError, "category parameter is required"
+    end
+
+    unless VALID_SCOPES.include?(params[:scope])
+      raise ArgumentError,
+            "Invalid scope: #{params[:scope]}. " \
+            "Valid scopes are: #{VALID_SCOPES.join(', ')}"
+    end
+  end
+
+  def fetch_top_performers
+    query_class = SCOPE_TO_QUERY_CLASS[params[:scope]]
+    query = create_query(query_class, params[:category])
+    query.call
+  end
+
+  def build_response(results)
+    {
+      top_performers: format_results(
+        results,
+        params[:scope],
+        params[:category]
+      ),
+      meta: {
+        scope: params[:scope],
+        category: params[:category]
+      }
+    }
+  end
+
+  def create_query(query_class, category)
+    case query_class.name
+    when "CareerTotalsQuery", "PerMinuteQuery"
+      query_class.new(category: category.to_sym)
+    else
+      # FightMaximumsQuery and RoundMaximumsQuery
+      # take the statistic as first arg
+      query_class.new(category.to_s)
+    end
+  end
+
+  def format_results(results, scope, category)
+    formatter = ResultFormatter.new(scope, category)
+    results.map { |result| formatter.format(result) }
+  end
+
+  # Encapsulates result formatting logic
+  class ResultFormatter
+    def initialize(scope, category)
+      @scope = scope
+      @category = category
+    end
+
+    def format(result)
+      send("format_#{@scope}", result)
+    end
+
+    private
+
+    def format_career(result)
+      result
+    end
+
+    def format_fight(result)
+      base_format(result).merge(
+        "max_#{@category}" => result[:value],
+        event_name: result[:event_name],
+        opponent_name: result[:opponent_name]
+      )
+    end
+
+    def format_round(result)
+      format_fight(result).merge(round: result[:round])
+    end
+
+    def format_per_minute(result)
+      base_format(result).merge(
+        "#{@category}_per_minute" => result[:rate_per_15_minutes],
+        fight_id: nil,
+        fight_duration_minutes: minutes_from_seconds(
+          result[:total_time_seconds]
+        ),
+        "total_#{@category}" => result[:total_statistic]
+      )
+    end
+
+    def base_format(result)
+      {
+        fighter_id: result[:fighter_id],
+        fighter_name: result[:fighter_name],
+        fight_id: result[:fight_id]
+      }
+    end
+
+    def minutes_from_seconds(seconds)
+      (seconds / 60.0).round(2)
+    end
+  end
+end

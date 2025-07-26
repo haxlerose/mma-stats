@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: "Fighter One"
+  height_in_inches: 72
+  reach_in_inches: 74
+  birth_date: 1990-01-01
+
+two:
+  name: "Fighter Two"
+  height_in_inches: 70
+  reach_in_inches: 72
+  birth_date: 1992-06-15

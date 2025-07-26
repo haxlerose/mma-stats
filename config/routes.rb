@@ -14,6 +14,7 @@ Rails.application.routes.draw do
       resources :fighter_spotlight, only: [:index]
       resources :statistical_highlights, only: [:index]
       resources :locations, only: [:index]
+      resources :top_performers, only: [:index]
     end
   end
 

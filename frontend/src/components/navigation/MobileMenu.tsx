@@ -32,6 +32,11 @@ const navLinks: NavLink[] = [
     href: '/fighters',
     isActive: (pathname) => pathname.startsWith('/fighters'),
   },
+  {
+    label: 'Top Performers',
+    href: '/top-performers',
+    isActive: (pathname) => pathname.startsWith('/top-performers'),
+  },
 ];
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {

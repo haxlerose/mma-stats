@@ -21,6 +21,8 @@ import {
   StatisticalHighlight,
   StatisticalHighlightsResponse,
   ApiError,
+  TopPerformersResponse,
+  TopPerformersSearchParams,
 } from "@/types/api";
 
 /**
@@ -181,6 +183,22 @@ export const apiClient = {
     list: (): Promise<string[]> =>
       apiFetch<LocationsResponse>("/locations")
         .then(response => response.locations),
+  },
+
+  // Top Performers API
+  topPerformers: {
+    /**
+     * Get top 10 performers for a specific category and scope
+     * @param params - Scope and category parameters
+     */
+    list: (params: TopPerformersSearchParams): Promise<TopPerformersResponse> => {
+      const searchParams = new URLSearchParams({
+        scope: params.scope,
+        category: params.category,
+      });
+      
+      return apiFetch<TopPerformersResponse>(`/top_performers?${searchParams.toString()}`);
+    },
   },
 
   // Health check
