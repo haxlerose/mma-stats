@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_25_173119) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_26_211914) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -53,8 +53,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_25_173119) do
     t.integer "ground_strikes_attempted"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["fight_id", "fighter_id", "round"], name: "idx_fight_stats_fight_fighter_round"
     t.index ["fight_id"], name: "index_fight_stats_on_fight_id"
+    t.index ["fighter_id", "control_time_seconds"], name: "idx_fight_stats_fighter_control_time"
+    t.index ["fighter_id", "fight_id", "round", "knockdowns", "significant_strikes", "total_strikes", "takedowns", "submission_attempts", "control_time_seconds"], name: "idx_fight_stats_per_minute_covering"
     t.index ["fighter_id", "fight_id"], name: "index_fight_stats_on_fighter_id_and_fight_id"
+    t.index ["fighter_id", "knockdowns"], name: "idx_fight_stats_fighter_knockdowns"
+    t.index ["fighter_id", "significant_strikes"], name: "idx_fight_stats_fighter_sig_strikes"
+    t.index ["fighter_id", "submission_attempts"], name: "idx_fight_stats_fighter_sub_attempts"
+    t.index ["fighter_id", "takedowns"], name: "idx_fight_stats_fighter_takedowns"
+    t.index ["fighter_id", "total_strikes"], name: "idx_fight_stats_fighter_total_strikes"
     t.index ["fighter_id"], name: "index_fight_stats_on_fighter_id"
   end
 
