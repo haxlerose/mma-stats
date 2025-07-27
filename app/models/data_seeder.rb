@@ -12,6 +12,9 @@ class DataSeeder
       import_fights
       import_fight_stats
 
+      # Refresh materialized view after successful import
+      refresh_fight_durations_view
+
       Rails.logger.info "  Data import completed successfully!"
 
       # Return statistics
@@ -86,6 +89,25 @@ class DataSeeder
         fights_count: Fight.count,
         fight_stats_count: FightStat.count
       }
+    end
+
+    def refresh_fight_durations_view
+      # Check if materialized view exists
+      result = ActiveRecord::Base.connection.execute(
+        "SELECT matviewname FROM pg_matviews " \
+        "WHERE schemaname = 'public' AND matviewname = 'fight_durations'"
+      )
+
+      return if result.none?
+
+      Rails.logger.info "  Refreshing fight_durations materialized view..."
+      ActiveRecord::Base.connection.execute(
+        "REFRESH MATERIALIZED VIEW CONCURRENTLY fight_durations"
+      )
+      Rails.logger.info "  Materialized view refreshed successfully"
+    rescue ActiveRecord::StatementInvalid => e
+      # Log the error but don't fail the import
+      Rails.logger.warn "  Could not refresh materialized view: #{e.message}"
     end
   end
 end

@@ -211,7 +211,7 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
     # Should use per_15_minutes instead of per_minute
     assert_includes fighter4_data, "significant_strikes_per_15_minutes"
     assert_not fighter4_data.key?("significant_strikes_per_minute"),
-                "Should not include per_minute key"
+               "Should not include per_minute key"
     # PerMinuteQuery doesn't return specific fight
     assert_nil fighter4_data["fight_id"]
     assert_includes fighter4_data, "fight_duration_minutes"
@@ -223,10 +223,10 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
     assert_equal 300, fighter4_data["total_significant_strikes"]
   end
 
-  test "should return per_15_minutes keys for all categories in per_minute scope" do
+  test "should return per_15_minutes keys for per_minute scope" do
     # Create a fighter with minimum 5 fights to meet PerMinuteQuery requirement
     fighter = Fighter.create!(name: "Test Fighter 100")
-    
+
     5.times do |i|
       event = Event.create!(
         name: "UFC 30#{i}",
@@ -241,7 +241,7 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
         round: 1,
         time: "3:00"
       )
-      
+
       FightStat.create!(
         fight: fight,
         fighter: fighter,
@@ -254,21 +254,24 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
     end
 
     # Test different categories
-    %w[knockdowns significant_strikes takedowns control_time_seconds].each do |category|
+    %w[knockdowns
+       significant_strikes
+       takedowns
+       control_time_seconds].each do |category|
       get api_v1_top_performers_url(
-        scope: "per_minute", 
+        scope: "per_minute",
         category: category
       )
       assert_response :success
 
       response_data = response.parsed_body
       top_performers = response_data["top_performers"]
-      
+
       assert_not_empty top_performers, "Should have results for #{category}"
-      
+
       first_performer = top_performers.first
       expected_key = "#{category}_per_15_minutes"
-      
+
       assert first_performer.key?(expected_key),
              "Should have #{expected_key} key for #{category}"
       assert_not first_performer.key?("#{category}_per_minute"),
