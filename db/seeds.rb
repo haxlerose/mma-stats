@@ -6,6 +6,8 @@
 puts "Starting database seeding..."
 start_time = Time.current
 
+Fighter.create!(name: "Tallison Teixeira", slug: "tallisson-teixeira", birth_date: '1999-12-07')
+
 # Import all data from CSV files in the correct order
 puts "\n=== Importing data from CSV files ==="
 begin
@@ -22,6 +24,8 @@ rescue StandardError => e
   puts e.backtrace.first(5).join("\n")
   exit 1
 end
+
+Fighter.find_by_name('Talisson Teixeira')&.destroy
 
 # Scrape missing fight data from ufcstats.com
 puts "\n=== Scraping missing fight data from ufcstats.com ==="
@@ -175,4 +179,3 @@ end
 total_time = Time.current - start_time
 puts "\n=== Seeding completed in #{total_time.round(2)} seconds ==="
 puts "Database is ready!"
-
