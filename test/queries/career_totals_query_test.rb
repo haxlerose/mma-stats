@@ -4,8 +4,18 @@ require "test_helper"
 
 class CareerTotalsQueryTest < ActiveSupport::TestCase
   def setup
-    @fighter1 = fighters(:one)
-    @fighter2 = fighters(:two)
+    @fighter1 = Fighter.create!(
+      name: "Fighter One",
+      height_in_inches: 72,
+      reach_in_inches: 74,
+      birth_date: Date.new(1990, 1, 1)
+    )
+    @fighter2 = Fighter.create!(
+      name: "Fighter Two",
+      height_in_inches: 70,
+      reach_in_inches: 72,
+      birth_date: Date.new(1992, 6, 15)
+    )
     @fighter3 = Fighter.create!(name: "Test Fighter Three")
 
     # Create test data with various knockdown counts

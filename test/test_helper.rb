@@ -21,7 +21,8 @@ end
 module ActiveSupport
   class TestCase
     parallelize(workers: :number_of_processors)
-    fixtures :all
+    # Disabled automatic fixture loading to allow tests to create their own data
+    # fixtures :all
 
     # Add more helper methods to be used by all tests here...
   end
