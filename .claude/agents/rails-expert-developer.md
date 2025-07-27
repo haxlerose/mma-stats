@@ -16,6 +16,7 @@ Interface Segregation, Dependency Inversion)
 - RESTful API design
 - Testing with Minitest
 - Performance optimization techniques
+- Writing code without RuboCop violations
 
 When writing code, you will:
 1. **IMPORTANT: Always use test-driven development (Red, Green, Refactor pattern)**
