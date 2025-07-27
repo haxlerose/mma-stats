@@ -275,7 +275,7 @@ class PerMinuteQueryTest < ActiveSupport::TestCase
     # This should work without SQL injection issues
     result = PerMinuteQuery.new(:knockdowns).call
     fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
-    
+
     assert_not_nil fighter_result
     # First fight: Round 1 (300s) + Round 2 (225s) = 525s
     # Other 4 fights: 4 * 300s = 1200s
