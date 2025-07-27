@@ -84,29 +84,52 @@ class PerMinuteQuery
   end
 
   def fighters_with_stats_fallback
-    # Use Arel to safely reference the column
-    fight_stats_table = FightStat.arel_table
-    fighters_table = Fighter.arel_table
-
-    # Build the statistic sum safely using Arel
-    stat_sum = Arel::Nodes::NamedFunction.new(
-      "SUM",
-      [fight_stats_table[@statistic_type]],
-      "stat_total"
-    )
-
-    Fighter
-      .select(
-        fighters_table[:id],
-        fighters_table[:name],
-        "COUNT(DISTINCT fights.id) as fight_count",
-        "SUM(#{calculate_fight_time_sql}) as total_time",
-        stat_sum
+    # Build a CTE-based query to avoid SQL injection
+    sql = <<~SQL.squish
+      WITH fighter_fight_times AS (
+        SELECT
+          fs.fighter_id,
+          fs.fight_id,
+          fs.round as stat_round,
+          f.round as fight_round,
+          f.time as fight_time,
+          CASE
+            WHEN fs.round < f.round THEN 300
+            WHEN fs.round = f.round THEN
+              CASE
+                WHEN f.time ~ '^[0-9]+:[0-9]+$' THEN
+                  (CAST(SPLIT_PART(f.time, ':', 1) AS INTEGER) * 60 +
+                   CAST(SPLIT_PART(f.time, ':', 2) AS INTEGER))
+                ELSE 300
+              END
+            ELSE 0
+          END as round_duration_seconds,
+          fs.#{ActiveRecord::Base.connection.quote_column_name(@statistic_type.to_s)} as stat_value
+        FROM fight_stats fs
+        JOIN fights f ON fs.fight_id = f.id
       )
-      .joins(fight_stats: :fight)
-      .group(fighters_table[:id], fighters_table[:name])
-      .having("SUM(#{calculate_fight_time_sql}) > 0")
-      .map { |fighter| build_fighter_hash(fighter) }
+      SELECT
+        fi.id as fighter_id,
+        fi.name as fighter_name,
+        COUNT(DISTINCT fft.fight_id) as fight_count,
+        SUM(fft.round_duration_seconds) as total_time_seconds,
+        SUM(fft.stat_value) as stat_total
+      FROM fighters fi
+      JOIN fighter_fight_times fft ON fi.id = fft.fighter_id
+      GROUP BY fi.id, fi.name
+      HAVING SUM(fft.round_duration_seconds) > 0
+    SQL
+
+    results = ActiveRecord::Base.connection.execute(sql)
+    results.map do |row|
+      {
+        fighter_id: row["fighter_id"],
+        fighter_name: row["fighter_name"],
+        total_fights: row["fight_count"],
+        total_time_seconds: row["total_time_seconds"].to_i,
+        total_statistic: row["stat_total"].to_i
+      }
+    end
   end
 
   def build_fighter_hash(fighter)

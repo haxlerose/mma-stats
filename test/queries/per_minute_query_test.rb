@@ -226,6 +226,63 @@ class PerMinuteQueryTest < ActiveSupport::TestCase
     end
   end
 
+  test "calculate_fight_time_sql is safe from SQL injection" do
+    # This test ensures that the fight time calculation
+    # doesn't use string interpolation
+    fighter = Fighter.create!(name: "SQL Injection Test Fighter")
+    fight = Fight.create!(
+      event: @event,
+      bout: "Injection Test Fight",
+      outcome: "Win",
+      weight_class: "Lightweight",
+      round: 2,
+      time: "3:45"
+    )
+    FightStat.create!(
+      fight: fight,
+      fighter: fighter,
+      round: 1,
+      knockdowns: 1,
+      control_time_seconds: 0
+    )
+    FightStat.create!(
+      fight: fight,
+      fighter: fighter,
+      round: 2,
+      knockdowns: 2,
+      control_time_seconds: 0
+    )
+
+    # Add 4 more fights to meet minimum
+    4.times do |i|
+      other_fight = Fight.create!(
+        event: @event,
+        bout: "Other Fight #{i}",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 1,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: other_fight,
+        fighter: fighter,
+        round: 1,
+        knockdowns: 1,
+        control_time_seconds: 0
+      )
+    end
+
+    # This should work without SQL injection issues
+    result = PerMinuteQuery.new(:knockdowns).call
+    fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
+    
+    assert_not_nil fighter_result
+    # First fight: Round 1 (300s) + Round 2 (225s) = 525s
+    # Other 4 fights: 4 * 300s = 1200s
+    # Total: 1725s
+    assert_equal 1725, fighter_result[:total_time_seconds]
+  end
+
   test "handles decimal precision correctly" do
     fighter = Fighter.create!(name: "Alex Pereira")
     5.times do |i|
