@@ -249,29 +249,29 @@ export interface TopPerformer {
   event_name?: string;
   opponent_name?: string;
   round?: number;
-  // Per minute scope
-  knockdowns_per_minute?: number;
-  significant_strikes_per_minute?: number;
-  significant_strikes_attempted_per_minute?: number;
-  total_strikes_per_minute?: number;
-  total_strikes_attempted_per_minute?: number;
-  head_strikes_per_minute?: number;
-  head_strikes_attempted_per_minute?: number;
-  body_strikes_per_minute?: number;
-  body_strikes_attempted_per_minute?: number;
-  leg_strikes_per_minute?: number;
-  leg_strikes_attempted_per_minute?: number;
-  distance_strikes_per_minute?: number;
-  distance_strikes_attempted_per_minute?: number;
-  clinch_strikes_per_minute?: number;
-  clinch_strikes_attempted_per_minute?: number;
-  ground_strikes_per_minute?: number;
-  ground_strikes_attempted_per_minute?: number;
-  takedowns_per_minute?: number;
-  takedowns_attempted_per_minute?: number;
-  submission_attempts_per_minute?: number;
-  reversals_per_minute?: number;
-  control_time_seconds_per_minute?: number;
+  // Per 15 minutes scope
+  knockdowns_per_15_minutes?: number;
+  significant_strikes_per_15_minutes?: number;
+  significant_strikes_attempted_per_15_minutes?: number;
+  total_strikes_per_15_minutes?: number;
+  total_strikes_attempted_per_15_minutes?: number;
+  head_strikes_per_15_minutes?: number;
+  head_strikes_attempted_per_15_minutes?: number;
+  body_strikes_per_15_minutes?: number;
+  body_strikes_attempted_per_15_minutes?: number;
+  leg_strikes_per_15_minutes?: number;
+  leg_strikes_attempted_per_15_minutes?: number;
+  distance_strikes_per_15_minutes?: number;
+  distance_strikes_attempted_per_15_minutes?: number;
+  clinch_strikes_per_15_minutes?: number;
+  clinch_strikes_attempted_per_15_minutes?: number;
+  ground_strikes_per_15_minutes?: number;
+  ground_strikes_attempted_per_15_minutes?: number;
+  takedowns_per_15_minutes?: number;
+  takedowns_attempted_per_15_minutes?: number;
+  submission_attempts_per_15_minutes?: number;
+  reversals_per_15_minutes?: number;
+  control_time_seconds_per_15_minutes?: number;
   fight_duration_minutes?: number;
 }
 

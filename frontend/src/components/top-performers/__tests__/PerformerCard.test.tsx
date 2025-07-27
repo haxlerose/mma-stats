@@ -112,7 +112,7 @@ describe('PerformerCard', () => {
     it('displays rate statistics with two decimal places', () => {
       const performer = {
         ...basePerformer,
-        takedowns_per_minute: 2.567,
+        takedowns_per_15_minutes: 2.567,
         fight_duration_minutes: 45.5,
         total_takedowns: 15,
       };

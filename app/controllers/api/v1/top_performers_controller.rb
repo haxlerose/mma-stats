@@ -117,7 +117,7 @@ class Api::V1::TopPerformersController < ApplicationController
 
     def format_per_minute(result)
       base_format(result).merge(
-        "#{@category}_per_minute" => result[:rate_per_15_minutes],
+        "#{@category}_per_15_minutes" => result[:rate_per_15_minutes],
         fight_id: nil,
         fight_duration_minutes: minutes_from_seconds(
           result[:total_time_seconds]

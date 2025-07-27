@@ -208,16 +208,72 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
 
     assert_includes fighter4_data, "fighter_id"
     assert_includes fighter4_data, "fighter_name"
-    assert_includes fighter4_data, "significant_strikes_per_minute"
+    # Should use per_15_minutes instead of per_minute
+    assert_includes fighter4_data, "significant_strikes_per_15_minutes"
+    assert_not fighter4_data.key?("significant_strikes_per_minute"),
+                "Should not include per_minute key"
     # PerMinuteQuery doesn't return specific fight
     assert_nil fighter4_data["fight_id"]
     assert_includes fighter4_data, "fight_duration_minutes"
     assert_includes fighter4_data, "total_significant_strikes"
 
     # Verify the calculation makes sense
-    assert fighter4_data["significant_strikes_per_minute"].positive?
+    assert fighter4_data["significant_strikes_per_15_minutes"].positive?
     # 5 fights * 3 rounds * 20 strikes
     assert_equal 300, fighter4_data["total_significant_strikes"]
+  end
+
+  test "should return per_15_minutes keys for all categories in per_minute scope" do
+    # Create a fighter with minimum 5 fights to meet PerMinuteQuery requirement
+    fighter = Fighter.create!(name: "Test Fighter 100")
+    
+    5.times do |i|
+      event = Event.create!(
+        name: "UFC 30#{i}",
+        date: Date.new(2023, 4 + i, 1),
+        location: "Test City"
+      )
+      fight = Fight.create!(
+        event: event,
+        bout: "#{fighter.name} vs Opponent #{i}",
+        outcome: "#{fighter.name} wins",
+        weight_class: "Lightweight",
+        round: 1,
+        time: "3:00"
+      )
+      
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        knockdowns: 1,
+        significant_strikes: 10,
+        takedowns: 2,
+        control_time_seconds: 60
+      )
+    end
+
+    # Test different categories
+    %w[knockdowns significant_strikes takedowns control_time_seconds].each do |category|
+      get api_v1_top_performers_url(
+        scope: "per_minute", 
+        category: category
+      )
+      assert_response :success
+
+      response_data = response.parsed_body
+      top_performers = response_data["top_performers"]
+      
+      assert_not_empty top_performers, "Should have results for #{category}"
+      
+      first_performer = top_performers.first
+      expected_key = "#{category}_per_15_minutes"
+      
+      assert first_performer.key?(expected_key),
+             "Should have #{expected_key} key for #{category}"
+      assert_not first_performer.key?("#{category}_per_minute"),
+                 "Should not have per_minute key for #{category}"
+    end
   end
 
   test "should return error for invalid scope" do

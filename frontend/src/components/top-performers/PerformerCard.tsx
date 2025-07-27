@@ -34,7 +34,7 @@ export function PerformerCard({ performer, rank, scope, category }: PerformerCar
       }
       return value?.toString() || '0';
     } else if (scope === 'per_minute') {
-      const value = performer[`${category}_per_minute` as keyof TopPerformer];
+      const value = performer[`${category}_per_15_minutes` as keyof TopPerformer];
       if (category === 'control_time_seconds' && typeof value === 'number') {
         return formatControlTime(Math.round(value));
       }
