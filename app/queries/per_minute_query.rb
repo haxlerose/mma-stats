@@ -84,29 +84,44 @@ class PerMinuteQuery
   end
 
   def fighters_with_stats_fallback
+    # Use Arel to safely reference the column
+    fight_stats_table = FightStat.arel_table
+    fighters_table = Fighter.arel_table
+
+    # Build the statistic sum safely using Arel
+    stat_sum = Arel::Nodes::NamedFunction.new(
+      "SUM",
+      [fight_stats_table[@statistic_type]],
+      "stat_total"
+    )
+
     Fighter
       .select(
-        "fighters.id",
-        "fighters.name",
+        fighters_table[:id],
+        fighters_table[:name],
         "COUNT(DISTINCT fights.id) as fight_count",
         "SUM(#{calculate_fight_time_sql}) as total_time",
-        "SUM(fight_stats.#{@statistic_type}) as stat_total"
+        stat_sum
       )
       .joins(fight_stats: :fight)
-      .group("fighters.id", "fighters.name")
+      .group(fighters_table[:id], fighters_table[:name])
       .having("SUM(#{calculate_fight_time_sql}) > 0")
-      .map do |fighter|
-        {
-          fighter_id: fighter.id,
-          fighter_name: fighter.name,
-          total_fights: fighter.fight_count,
-          total_time_seconds: fighter.total_time.to_i,
-          total_statistic: fighter.stat_total.to_i
-        }
-      end
+      .map { |fighter| build_fighter_hash(fighter) }
+  end
+
+  def build_fighter_hash(fighter)
+    {
+      fighter_id: fighter.id,
+      fighter_name: fighter.name,
+      total_fights: fighter.fight_count,
+      total_time_seconds: fighter.total_time.to_i,
+      total_statistic: fighter.stat_total.to_i
+    }
   end
 
   def build_optimized_query
+    # Safely quote the column name to prevent SQL injection
+    safe_column = ActiveRecord::Base.connection.quote_column_name(@statistic_type.to_s)
     <<~SQL.squish
       WITH fighter_fight_times AS (
         SELECT
@@ -130,7 +145,7 @@ class PerMinuteQuery
           f.name as fighter_name,
           COUNT(DISTINCT fs.fight_id) as fight_count,
           SUM(fft.round_duration_seconds) as total_time_seconds,
-          SUM(fs.#{@statistic_type}) as stat_total
+          SUM(fs.#{safe_column}) as stat_total
         FROM fight_stats fs
         JOIN fighters f ON fs.fighter_id = f.id
         JOIN fighter_fight_times fft ON fs.fighter_id = fft.fighter_id

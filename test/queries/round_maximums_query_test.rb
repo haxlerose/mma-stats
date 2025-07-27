@@ -215,6 +215,16 @@ class RoundMaximumsQueryTest < ActiveSupport::TestCase
     end
   end
 
+  test "prevents SQL injection attempts" do
+    assert_raises(ArgumentError) do
+      RoundMaximumsQuery.new("knockdowns; DROP TABLE fighters;").call
+    end
+
+    assert_raises(ArgumentError) do
+      RoundMaximumsQuery.new("1=1 OR knockdowns").call
+    end
+  end
+
   test "handles reversals statistic" do
     result = RoundMaximumsQuery.new("reversals").call
     assert_equal 3, result.count

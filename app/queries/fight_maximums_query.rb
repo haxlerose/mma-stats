@@ -51,15 +51,17 @@ class FightMaximumsQuery
   end
 
   def build_query
+    # Safely quote the column name to prevent SQL injection
+    safe_column = ActiveRecord::Base.connection.quote_column_name(statistic)
     <<~SQL.squish
       WITH fight_totals AS (
         SELECT
           fs.fighter_id,
           fs.fight_id,
-          SUM(fs.#{statistic}) AS total_value
+          SUM(fs.#{safe_column}) AS total_value
         FROM fight_stats fs
         GROUP BY fs.fighter_id, fs.fight_id
-        HAVING SUM(fs.#{statistic}) > 0
+        HAVING SUM(fs.#{safe_column}) > 0
       ),
       ranked_fights AS (
         SELECT

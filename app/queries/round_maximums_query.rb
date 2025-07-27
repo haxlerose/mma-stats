@@ -51,19 +51,21 @@ class RoundMaximumsQuery
   end
 
   def build_query
+    # Safely quote the column name to prevent SQL injection
+    safe_column = ActiveRecord::Base.connection.quote_column_name(statistic)
     <<~SQL.squish
       WITH ranked_rounds AS (
         SELECT
           fs.fighter_id,
           fs.fight_id,
           fs.round,
-          fs.#{statistic} AS value,
+          fs.#{safe_column} AS value,
           f.event_id,
-          ROW_NUMBER() OVER (ORDER BY fs.#{statistic} DESC) as rank
+          ROW_NUMBER() OVER (ORDER BY fs.#{safe_column} DESC) as rank
         FROM fight_stats fs
         JOIN fights f ON fs.fight_id = f.id
-        WHERE fs.#{statistic} IS NOT NULL
-          AND fs.#{statistic} > 0
+        WHERE fs.#{safe_column} IS NOT NULL
+          AND fs.#{safe_column} > 0
       ),
       top_rounds AS (
         SELECT *

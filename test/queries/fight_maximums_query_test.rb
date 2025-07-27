@@ -192,6 +192,16 @@ class FightMaximumsQueryTest < ActiveSupport::TestCase
     end
   end
 
+  test "prevents SQL injection attempts" do
+    assert_raises(ArgumentError) do
+      FightMaximumsQuery.new("knockdowns; DROP TABLE fighters;").call
+    end
+
+    assert_raises(ArgumentError) do
+      FightMaximumsQuery.new("1=1 OR knockdowns").call
+    end
+  end
+
   test "handles reversals statistic" do
     result = FightMaximumsQuery.new("reversals").call
     assert_equal 1, result.count

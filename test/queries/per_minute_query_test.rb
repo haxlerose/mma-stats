@@ -211,6 +211,21 @@ class PerMinuteQueryTest < ActiveSupport::TestCase
     assert_equal [], result
   end
 
+  test "raises error for invalid statistic type" do
+    assert_raises ArgumentError do
+      PerMinuteQuery.new(:invalid_stat).call
+    end
+
+    # Test SQL injection attempts
+    assert_raises ArgumentError do
+      PerMinuteQuery.new("knockdowns; DROP TABLE fighters;").call
+    end
+
+    assert_raises ArgumentError do
+      PerMinuteQuery.new("1=1 OR knockdowns").call
+    end
+  end
+
   test "handles decimal precision correctly" do
     fighter = Fighter.create!(name: "Alex Pereira")
     5.times do |i|
