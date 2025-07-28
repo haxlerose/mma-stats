@@ -144,6 +144,7 @@ npm run lint               # ESLint check
 - **Importers**: Data import classes (e.g., EventImporter) for external data sources
 
 ## Development Standards
+- ALWAYS use the appropriate subagent for the job
 
 ### Git Messages
 - **GIT COMMIT MESSAGES SHOULD ONLY CONTAIN CODE CHANGE DESCRIPTIONS**
@@ -222,6 +223,7 @@ npm run lint               # ESLint check
 ## Important Notes
 
 - **IMPORTANT! YOU MUST ALWAYS USE TDD AS EXPLAINED EARLIER**
+- ALWAYS use the subagent that is right for the job
 - Frontend runs on port 3001, backend on 3000
 - Use TypeScript for all frontend code
 - Follow existing component patterns
