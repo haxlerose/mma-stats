@@ -195,7 +195,15 @@ export type TopPerformerCategory =
   | "submission_attempts"
   | "reversals"
   | "control_time_seconds"
-  | "significant_strike_accuracy";
+  | "significant_strike_accuracy"
+  | "total_strike_accuracy"
+  | "head_strike_accuracy"
+  | "body_strike_accuracy"
+  | "leg_strike_accuracy"
+  | "distance_strike_accuracy"
+  | "clinch_strike_accuracy"
+  | "ground_strike_accuracy"
+  | "takedown_accuracy";
 
 export interface TopPerformer {
   fighter_id: number;
@@ -287,9 +295,21 @@ export interface TopPerformersResponse {
     scope: TopPerformerScope;
     category: TopPerformerCategory;
   };
+  minimum_thresholds?: {
+    significant_strike_accuracy?: number;
+    total_strike_accuracy?: number;
+    head_strike_accuracy?: number;
+    body_strike_accuracy?: number;
+    leg_strike_accuracy?: number;
+    distance_strike_accuracy?: number;
+    clinch_strike_accuracy?: number;
+    ground_strike_accuracy?: number;
+    takedown_accuracy?: number;
+  };
 }
 
 export interface TopPerformersSearchParams {
   scope: TopPerformerScope;
   category: TopPerformerCategory;
+  apply_threshold?: boolean;
 }

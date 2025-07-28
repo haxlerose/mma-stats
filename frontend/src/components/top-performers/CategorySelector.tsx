@@ -83,21 +83,9 @@ export function CategorySelector({ activeCategory, onCategoryChange, scope }: Ca
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Special handling for accuracy scope
+  // Special handling for accuracy scope - hide the regular category selector
   if (scope === 'accuracy') {
-    return (
-      <div className="relative" ref={dropdownRef}>
-        <button
-          type="button"
-          disabled
-          className="w-full md:w-64 px-4 py-2 text-left bg-card text-card-foreground border border-border rounded-md shadow-sm opacity-75 cursor-not-allowed"
-        >
-          <span className="flex items-center justify-between">
-            <span className="truncate">Significant Strike Accuracy</span>
-          </span>
-        </button>
-      </div>
-    );
+    return null;
   }
 
   // Find active category label

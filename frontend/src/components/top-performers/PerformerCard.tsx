@@ -157,10 +157,44 @@ export function PerformerCard({ performer, rank, scope, category }: PerformerCar
         <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-600">
           <div className="space-y-1">
             <p>
-              <span className="font-medium">Landed:</span> {performer.total_significant_strikes || 0}
+              <span className="font-medium">Landed:</span> {
+                (() => {
+                  // Map accuracy category to corresponding landed stat
+                  const landedStatMap: Record<string, keyof TopPerformer> = {
+                    'significant_strike_accuracy': 'total_significant_strikes',
+                    'total_strike_accuracy': 'total_total_strikes',
+                    'head_strike_accuracy': 'total_head_strikes',
+                    'body_strike_accuracy': 'total_body_strikes',
+                    'leg_strike_accuracy': 'total_leg_strikes',
+                    'distance_strike_accuracy': 'total_distance_strikes',
+                    'clinch_strike_accuracy': 'total_clinch_strikes',
+                    'ground_strike_accuracy': 'total_ground_strikes',
+                    'takedown_accuracy': 'total_takedowns',
+                  };
+                  const landedKey = landedStatMap[category];
+                  return landedKey ? (performer[landedKey] || 0) : 0;
+                })()
+              }
             </p>
             <p>
-              <span className="font-medium">Attempted:</span> {performer.total_significant_strikes_attempted || 0}
+              <span className="font-medium">Attempted:</span> {
+                (() => {
+                  // Map accuracy category to corresponding attempted stat
+                  const attemptedStatMap: Record<string, keyof TopPerformer> = {
+                    'significant_strike_accuracy': 'total_significant_strikes_attempted',
+                    'total_strike_accuracy': 'total_total_strikes_attempted',
+                    'head_strike_accuracy': 'total_head_strikes_attempted',
+                    'body_strike_accuracy': 'total_body_strikes_attempted',
+                    'leg_strike_accuracy': 'total_leg_strikes_attempted',
+                    'distance_strike_accuracy': 'total_distance_strikes_attempted',
+                    'clinch_strike_accuracy': 'total_clinch_strikes_attempted',
+                    'ground_strike_accuracy': 'total_ground_strikes_attempted',
+                    'takedown_accuracy': 'total_takedowns_attempted',
+                  };
+                  const attemptedKey = attemptedStatMap[category];
+                  return attemptedKey ? (performer[attemptedKey] || 0) : 0;
+                })()
+              }
             </p>
             <p>
               <span className="font-medium">Fight count:</span> {performer.total_fights || 0}

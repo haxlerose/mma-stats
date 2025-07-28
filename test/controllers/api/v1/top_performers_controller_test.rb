@@ -4,6 +4,9 @@ require "test_helper"
 
 class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
   setup do
+    # Ensure fight_durations materialized view exists for accuracy tests
+    ensure_fight_durations_view_exists
+
     # Create test data for all tests
     @fighter1 = Fighter.create!(name: "Fighter One")
     @fighter2 = Fighter.create!(name: "Fighter Two")
@@ -24,13 +27,17 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
       event: @event1,
       bout: "Fighter One vs Fighter Two",
       outcome: "Fighter One wins",
-      weight_class: "Lightweight"
+      weight_class: "Lightweight",
+      round: 3,
+      time: "5:00"
     )
     @fight2 = Fight.create!(
       event: @event2,
       bout: "Fighter One vs Fighter Three",
       outcome: "Fighter One wins",
-      weight_class: "Lightweight"
+      weight_class: "Lightweight",
+      round: 3,
+      time: "5:00"
     )
 
     # Create fight stats with different values
@@ -77,6 +84,11 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
       takedowns: 4,
       takedowns_attempted: 6,
       control_time_seconds: 240
+    )
+
+    # Refresh materialized view to include test data
+    ActiveRecord::Base.connection.execute(
+      "REFRESH MATERIALIZED VIEW fight_durations"
     )
   end
 
@@ -155,21 +167,25 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should get top performers for per_minute scope with strikes" do
-    # PerMinuteQuery requires minimum 5 fights
-    fighter4 = Fighter.create!(name: "Fighter Four")
+    # Create unique fighter names to avoid conflicts with parallel tests
+    unique_id = "#{Time.now.to_f}_#{rand(1000)}"
+    fighter4 = Fighter.create!(name: "Fighter Four #{unique_id}")
+
+    # Create another fighter with higher stats to ensure our fighter appears
+    fighter5 = Fighter.create!(name: "Fighter Five #{unique_id}")
 
     # Create 5 fights for fighter4 to meet the minimum requirement
     5.times do |i|
       event = Event.create!(
-        name: "UFC 20#{i}",
+        name: "UFC 20#{i} #{unique_id}",
         date: Date.new(2023, 3 + i, 1),
         location: "Las Vegas, NV"
       )
 
       fight = Fight.create!(
         event: event,
-        bout: "Fighter Four vs Opponent #{i}",
-        outcome: "Fighter Four wins",
+        bout: "#{fighter4.name} vs Opponent #{i}",
+        outcome: "#{fighter4.name} wins",
         weight_class: "Lightweight",
         round: 3,
         time: "5:00",
@@ -188,6 +204,45 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
       end
     end
 
+    # Create 5 fights for fighter5 with higher stats
+    5.times do |i|
+      event = Event.create!(
+        name: "UFC 21#{i} #{unique_id}",
+        date: Date.new(2023, 4 + i, 1),
+        location: "Las Vegas, NV"
+      )
+
+      fight = Fight.create!(
+        event: event,
+        bout: "#{fighter5.name} vs Opponent #{i}",
+        outcome: "#{fighter5.name} wins",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00",
+        time_format: "3 rounds of 5 minutes"
+      )
+
+      # Create fight stats with higher significant strikes
+      3.times do |round_num|
+        FightStat.create!(
+          fight: fight,
+          fighter: fighter5,
+          round: round_num + 1,
+          significant_strikes: 40, # Higher than fighter4
+          significant_strikes_attempted: 50
+        )
+      end
+    end
+
+    # Refresh materialized view if it exists
+    if ActiveRecord::Base.connection.execute(
+      "SELECT 1 FROM pg_matviews WHERE matviewname = 'fight_durations'"
+    ).any?
+      ActiveRecord::Base.connection.execute(
+        "REFRESH MATERIALIZED VIEW fight_durations"
+      )
+    end
+
     get api_v1_top_performers_url(
       scope: "per_minute",
       category: "significant_strikes"
@@ -200,11 +255,22 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
     assert_not_nil top_performers
     assert_kind_of Array, top_performers
 
-    # Find fighter4 in the results
-    fighter4_data = top_performers.find do |p|
-      p["fighter_name"] == "Fighter Four"
+    assert top_performers.length >= 2, "Should have at least 2 fighters"
+
+    # Find our test fighters in the results
+    fighter5_data = top_performers.find do |p|
+      p["fighter_name"] == fighter5.name
     end
-    assert_not_nil fighter4_data, "Fighter Four should be in the results"
+    fighter4_data = top_performers.find do |p|
+      p["fighter_name"] == fighter4.name
+    end
+
+    # Fighter5 should be first (higher stats)
+    assert_not_nil fighter5_data, "#{fighter5.name} should be in the results"
+    assert_equal fighter5_data, top_performers.first, "Fighter5 should be first"
+
+    # Fighter4 should also be in results
+    assert_not_nil fighter4_data, "#{fighter4.name} should be in the results"
 
     assert_includes fighter4_data, "fighter_id"
     assert_includes fighter4_data, "fighter_name"
@@ -225,11 +291,12 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
 
   test "should return per_15_minutes keys for per_minute scope" do
     # Create a fighter with minimum 5 fights to meet PerMinuteQuery requirement
-    fighter = Fighter.create!(name: "Test Fighter 100")
+    unique_id = "#{Time.now.to_f}_#{rand(1000)}"
+    fighter = Fighter.create!(name: "Test Fighter 100 #{unique_id}")
 
     5.times do |i|
       event = Event.create!(
-        name: "UFC 30#{i}",
+        name: "UFC 30#{i} #{unique_id}",
         date: Date.new(2023, 4 + i, 1),
         location: "Test City"
       )
@@ -253,11 +320,22 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
       )
     end
 
+    # Refresh materialized view if it exists
+    if ActiveRecord::Base.connection.execute(
+      "SELECT 1 FROM pg_matviews WHERE matviewname = 'fight_durations'"
+    ).any?
+      ActiveRecord::Base.connection.execute(
+        "REFRESH MATERIALIZED VIEW fight_durations"
+      )
+    end
+
     # Test different categories
-    %w[knockdowns
-       significant_strikes
-       takedowns
-       control_time_seconds].each do |category|
+    %w[
+      knockdowns
+      significant_strikes
+      takedowns
+      control_time_seconds
+    ].each do |category|
       get api_v1_top_performers_url(
         scope: "per_minute",
         category: category
@@ -415,7 +493,9 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
         event: event,
         bout: "Accurate Fighter vs Opponent #{i}",
         outcome: "Accurate Fighter wins",
-        weight_class: "Lightweight"
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
       )
       FightStat.create!(
         fight: fight1,
@@ -430,7 +510,9 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
         event: event,
         bout: "Medium Fighter vs Opponent #{i}",
         outcome: "Medium Fighter wins",
-        weight_class: "Lightweight"
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
       )
       FightStat.create!(
         fight: fight2,
@@ -440,6 +522,11 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
         significant_strikes_attempted: 50 # 60% accuracy
       )
     end
+
+    # Refresh materialized view to include new test data
+    ActiveRecord::Base.connection.execute(
+      "REFRESH MATERIALIZED VIEW fight_durations"
+    )
 
     get api_v1_top_performers_url(
       scope: "accuracy",
@@ -474,5 +561,242 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
     assert_response :bad_request
     response_data = response.parsed_body
     assert response_data["error"].present?
+  end
+
+  test "should return correct keys for different accuracy categories" do
+    # Create fighters with enough fights to qualify (minimum 5)
+    fighter = Fighter.create!(name: "Accuracy Key Test Fighter")
+
+    # Create 5 fights with various strike statistics
+    5.times do |i|
+      event = Event.create!(
+        name: "UFC #{500 + i}",
+        date: Date.new(2023, 6 + i, 1),
+        location: "Test Location #{i}"
+      )
+
+      fight = Fight.create!(
+        event: event,
+        bout: "Accuracy Key Test Fighter vs Opponent #{i}",
+        outcome: "Accuracy Key Test Fighter wins",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        significant_strikes: 45,
+        significant_strikes_attempted: 50,
+        total_strikes: 60,
+        total_strikes_attempted: 80,
+        head_strikes: 20,
+        head_strikes_attempted: 25,
+        body_strikes: 15,
+        body_strikes_attempted: 20,
+        leg_strikes: 10,
+        leg_strikes_attempted: 15,
+        distance_strikes: 30,
+        distance_strikes_attempted: 40,
+        clinch_strikes: 10,
+        clinch_strikes_attempted: 15,
+        ground_strikes: 5,
+        ground_strikes_attempted: 10,
+        takedowns: 2,
+        takedowns_attempted: 4
+      )
+    end
+
+    # Refresh materialized view to include new test data
+    ActiveRecord::Base.connection.execute(
+      "REFRESH MATERIALIZED VIEW fight_durations"
+    )
+
+    # Test key mapping for different accuracy types
+    key_mappings = {
+      "significant_strike_accuracy" => %w[
+        total_significant_strikes
+        total_significant_strikes_attempted
+      ],
+      "total_strike_accuracy" => %w[
+        total_total_strikes
+        total_total_strikes_attempted
+      ],
+      "head_strike_accuracy" => %w[
+        total_head_strikes
+        total_head_strikes_attempted
+      ],
+      "takedown_accuracy" => %w[total_takedowns total_takedowns_attempted]
+    }
+
+    key_mappings.each do |category, expected_keys|
+      get api_v1_top_performers_url(scope: "accuracy", category: category)
+      assert_response :success
+
+      response_data = response.parsed_body
+      top_performers = response_data["top_performers"]
+
+      next unless top_performers.any?
+
+      first = top_performers.first
+      expected_keys.each do |key|
+        assert_includes first,
+                        key,
+                        "Missing key '#{key}' for category #{category}"
+      end
+    end
+  end
+
+  test "should accept all accuracy categories" do
+    # Create fighters with enough fights to qualify (minimum 5)
+    fighter = Fighter.create!(name: "Multi-Accuracy Fighter")
+
+    # Create 5 fights with various strike statistics
+    5.times do |i|
+      event = Event.create!(
+        name: "UFC #{400 + i}",
+        date: Date.new(2023, 5 + i, 1),
+        location: "Location #{i}"
+      )
+
+      fight = Fight.create!(
+        event: event,
+        bout: "Multi-Accuracy Fighter vs Opponent #{i}",
+        outcome: "Multi-Accuracy Fighter wins",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        significant_strikes: 45,
+        significant_strikes_attempted: 50,
+        total_strikes: 60,
+        total_strikes_attempted: 80,
+        head_strikes: 20,
+        head_strikes_attempted: 25,
+        body_strikes: 15,
+        body_strikes_attempted: 20,
+        leg_strikes: 10,
+        leg_strikes_attempted: 15,
+        distance_strikes: 30,
+        distance_strikes_attempted: 40,
+        clinch_strikes: 10,
+        clinch_strikes_attempted: 15,
+        ground_strikes: 5,
+        ground_strikes_attempted: 10,
+        takedowns: 2,
+        takedowns_attempted: 4
+      )
+    end
+
+    # Refresh materialized view to include new test data
+    ActiveRecord::Base.connection.execute(
+      "REFRESH MATERIALIZED VIEW fight_durations"
+    )
+
+    # Test all accuracy categories
+    accuracy_categories = %w[
+      significant_strike_accuracy
+      total_strike_accuracy
+      head_strike_accuracy
+      body_strike_accuracy
+      leg_strike_accuracy
+      distance_strike_accuracy
+      clinch_strike_accuracy
+      ground_strike_accuracy
+      takedown_accuracy
+    ]
+
+    accuracy_categories.each do |category|
+      get api_v1_top_performers_url(scope: "accuracy", category: category)
+      assert_response :success,
+                      "Failed for accuracy category: #{category}"
+
+      response_data = response.parsed_body
+      assert_equal "accuracy", response_data["meta"]["scope"]
+      assert_equal category, response_data["meta"]["category"]
+
+      top_performers = response_data["top_performers"]
+      assert_not_nil top_performers
+      assert_kind_of Array, top_performers
+
+      # Check that the response has the expected structure
+      next unless top_performers.any?
+
+      first = top_performers.first
+      assert_includes first, "fighter_id"
+      assert_includes first, "fighter_name"
+      assert_includes first, "accuracy_percentage"
+      assert_includes first, "total_fights"
+      assert_nil first["fight_id"]
+    end
+  end
+
+  test "accuracy scope returns minimum attempt threshold" do
+    # Ensure materialized view exists
+    ensure_fight_durations_view_exists
+
+    # Create test data
+    event = Event.create!(
+      name: "UFC Test Event",
+      date: "2024-01-01",
+      location: "Las Vegas"
+    )
+    unique_id = "#{Time.now.to_f}_#{rand(1000)}"
+    fighter = Fighter.create!(name: "Test Fighter #{unique_id}")
+
+    5.times do |i|
+      fight = Fight.create!(
+        event: event,
+        bout: "Test Fight #{i} #{unique_id}",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        significant_strikes: 50,
+        significant_strikes_attempted: 100,
+        control_time_seconds: 0
+      )
+    end
+
+    # Refresh materialized view
+    ActiveRecord::Base.connection.execute(
+      "REFRESH MATERIALIZED VIEW fight_durations"
+    )
+
+    get api_v1_top_performers_path,
+        params: { scope: "accuracy", category: "significant_strike_accuracy" }
+
+    assert_response :success
+    json_response = response.parsed_body
+
+    assert json_response["meta"].key?("minimum_attempts_threshold")
+    assert json_response["meta"]["minimum_attempts_threshold"].positive?
+  end
+
+  test "accuracy scope can disable threshold with parameter" do
+    get api_v1_top_performers_path,
+        params: {
+          scope: "accuracy",
+          category: "significant_strike_accuracy",
+          apply_threshold: "false"
+        }
+
+    assert_response :success
+    json_response = response.parsed_body
+
+    # When threshold is disabled, it shouldn't be in meta
+    assert_not json_response["meta"].key?("minimum_attempts_threshold")
   end
 end

@@ -197,6 +197,11 @@ export const apiClient = {
         category: params.category,
       });
       
+      // Add apply_threshold parameter if provided
+      if (params.apply_threshold !== undefined) {
+        searchParams.append('apply_threshold', params.apply_threshold.toString());
+      }
+      
       return apiFetch<TopPerformersResponse>(`/top_performers?${searchParams.toString()}`);
     },
   },

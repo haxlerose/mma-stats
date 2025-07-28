@@ -15,11 +15,104 @@ class AccuracyQueryTest < ActiveSupport::TestCase
   test "returns top 10 fighters ordered by significant strike accuracy" do
     create_test_data_with_varying_accuracy
 
-    result = AccuracyQuery.new.call
+    result = AccuracyQuery.new(category: "significant_strike_accuracy").call
 
     assert_equal 10, result.length
     assert_equal "Accurate Fighter", result.first[:fighter_name]
     assert_equal "Medium Accuracy Fighter", result.second[:fighter_name]
+  end
+
+  test "calculates total strike accuracy" do
+    fighter = Fighter.create!(name: "Total Strike Fighter")
+    5.times do |i|
+      fight = Fight.create!(
+        event: @event,
+        bout: "Total Strike Fight #{i}",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 1,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        total_strikes: 90,
+        total_strikes_attempted: 100,
+        control_time_seconds: 0
+      )
+    end
+
+    result = AccuracyQuery.new(category: "total_strike_accuracy").call
+    fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
+
+    assert_not_nil fighter_result
+    assert_equal 90.0, fighter_result[:accuracy_percentage]
+    # Check for correct pluralized keys
+    assert_equal 450, fighter_result[:total_total_strikes]
+    assert_equal 500, fighter_result[:total_total_strikes_attempted]
+  end
+
+  test "calculates head strike accuracy" do
+    fighter = Fighter.create!(name: "Head Strike Fighter")
+    5.times do |i|
+      fight = Fight.create!(
+        event: @event,
+        bout: "Head Strike Fight #{i}",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 1,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        head_strikes: 40,
+        head_strikes_attempted: 50,
+        control_time_seconds: 0
+      )
+    end
+
+    result = AccuracyQuery.new(category: "head_strike_accuracy").call
+    fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
+
+    assert_not_nil fighter_result
+    assert_equal 80.0, fighter_result[:accuracy_percentage]
+    # Check for correct pluralized keys
+    assert_equal 200, fighter_result[:total_head_strikes]
+    assert_equal 250, fighter_result[:total_head_strikes_attempted]
+  end
+
+  test "calculates takedown accuracy" do
+    fighter = Fighter.create!(name: "Takedown Fighter")
+    5.times do |i|
+      fight = Fight.create!(
+        event: @event,
+        bout: "Takedown Fight #{i}",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 1,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        takedowns: 3,
+        takedowns_attempted: 5,
+        control_time_seconds: 0
+      )
+    end
+
+    result = AccuracyQuery.new(category: "takedown_accuracy").call
+    fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
+
+    assert_not_nil fighter_result
+    assert_equal 60.0, fighter_result[:accuracy_percentage]
+    # Check for correct pluralized keys
+    assert_equal 15, fighter_result[:total_takedowns]
+    assert_equal 25, fighter_result[:total_takedowns_attempted]
   end
 
   test "excludes fighters with fewer than 5 fights" do
@@ -43,7 +136,7 @@ class AccuracyQueryTest < ActiveSupport::TestCase
       )
     end
 
-    result = AccuracyQuery.new.call
+    result = AccuracyQuery.new(category: "significant_strike_accuracy").call
 
     fighter_names = result.map { |r| r[:fighter_name] }
     assert_not_includes fighter_names, fighter_with_4_fights.name
@@ -71,7 +164,7 @@ class AccuracyQueryTest < ActiveSupport::TestCase
       )
     end
 
-    result = AccuracyQuery.new.call
+    result = AccuracyQuery.new(category: "significant_strike_accuracy").call
     fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
 
     assert_not_nil fighter_result
@@ -102,7 +195,7 @@ class AccuracyQueryTest < ActiveSupport::TestCase
       )
     end
 
-    result = AccuracyQuery.new.call
+    result = AccuracyQuery.new(category: "significant_strike_accuracy").call
     fighter_names = result.map { |r| r[:fighter_name] }
 
     # Should not include fighters with zero attempts
@@ -166,7 +259,7 @@ class AccuracyQueryTest < ActiveSupport::TestCase
       )
     end
 
-    result = AccuracyQuery.new.call
+    result = AccuracyQuery.new(category: "significant_strike_accuracy").call
     fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
 
     # Total: 220 strikes landed out of 300 attempted = 73.33%
@@ -178,12 +271,12 @@ class AccuracyQueryTest < ActiveSupport::TestCase
     # Clear existing data
     FightStat.destroy_all
 
-    result = AccuracyQuery.new.call
+    result = AccuracyQuery.new(category: "significant_strike_accuracy").call
 
     assert_equal [], result
   end
 
-  test "only counts fights with attempts greater than zero" do
+  test "includes fighters with minimum total fights with partial attempts" do
     fighter = Fighter.create!(name: "Jon Jones")
     # 3 fights with strikes
     3.times do |i|
@@ -225,11 +318,16 @@ class AccuracyQueryTest < ActiveSupport::TestCase
       )
     end
 
-    result = AccuracyQuery.new.call
-    fighter_names = result.map { |r| r[:fighter_name] }
+    result = AccuracyQuery.new(category: "significant_strike_accuracy").call
+    fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
 
-    # Should not appear because only 3 fights with attempts (< 5 minimum)
-    assert_not_includes fighter_names, fighter.name
+    # Should appear because fighter has 6 total fights (>= 5 minimum)
+    # even though only 3 fights had significant strike attempts
+    assert_not_nil fighter_result
+    assert_equal 6, fighter_result[:total_fights]
+    assert_equal 90, fighter_result[:total_significant_strikes]
+    assert_equal 120, fighter_result[:total_significant_strikes_attempted]
+    assert_equal 75.0, fighter_result[:accuracy_percentage]
   end
 
   test "handles decimal precision correctly" do
@@ -253,12 +351,63 @@ class AccuracyQueryTest < ActiveSupport::TestCase
       )
     end
 
-    result = AccuracyQuery.new.call
+    result = AccuracyQuery.new(category: "significant_strike_accuracy").call
     fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
 
     # 115 strikes out of 185 = 62.16%
     assert_not_nil fighter_result
     assert_in_delta 62.16, fighter_result[:accuracy_percentage], 0.01
+  end
+
+  test "returns total career fights not just fights with attempts" do
+    fighter = Fighter.create!(name: "Chuck Liddell")
+
+    # Create 20 total fights
+    20.times do |i|
+      fight = Fight.create!(
+        event: @event,
+        bout: "Chuck Fight #{i}",
+        outcome: "Win",
+        weight_class: "Light Heavyweight",
+        round: 1,
+        time: "5:00"
+      )
+
+      # Only 6 fights have takedown attempts
+      if i < 6
+        FightStat.create!(
+          fight: fight,
+          fighter: fighter,
+          round: 1,
+          takedowns: 2,
+          takedowns_attempted: 5,
+          control_time_seconds: 0
+        )
+      else
+        # The rest have no takedown attempts (pure striking fights)
+        FightStat.create!(
+          fight: fight,
+          fighter: fighter,
+          round: 1,
+          takedowns: 0,
+          takedowns_attempted: 0,
+          significant_strikes: 50,
+          significant_strikes_attempted: 80,
+          control_time_seconds: 0
+        )
+      end
+    end
+
+    result = AccuracyQuery.new(category: "takedown_accuracy").call
+    fighter_result = result.find { |r| r[:fighter_name] == fighter.name }
+
+    # Fighter should appear with total career fights (20), not just
+    # fights with attempts (6)
+    assert_not_nil fighter_result
+    assert_equal 20, fighter_result[:total_fights]
+    assert_equal 12, fighter_result[:total_takedowns]
+    assert_equal 30, fighter_result[:total_takedowns_attempted]
+    assert_equal 40.0, fighter_result[:accuracy_percentage]
   end
 
   private

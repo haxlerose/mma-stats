@@ -58,16 +58,45 @@ class Api::V1::TopPerformersController < ApplicationController
   end
 
   def build_response(results)
+    if accuracy_results_with_threshold?(results)
+      build_accuracy_response_with_threshold(results)
+    else
+      build_standard_response(results)
+    end
+  end
+
+  def accuracy_results_with_threshold?(results)
+    params[:scope] == "accuracy" && results.is_a?(Hash)
+  end
+
+  def build_accuracy_response_with_threshold(results)
+    {
+      top_performers: format_results(
+        results[:fighters],
+        params[:scope],
+        params[:category]
+      ),
+      meta: base_meta.merge(
+        minimum_attempts_threshold: results[:minimum_attempts_threshold]
+      )
+    }
+  end
+
+  def build_standard_response(results)
     {
       top_performers: format_results(
         results,
         params[:scope],
         params[:category]
       ),
-      meta: {
-        scope: params[:scope],
-        category: params[:category]
-      }
+      meta: base_meta
+    }
+  end
+
+  def base_meta
+    {
+      scope: params[:scope],
+      category: params[:category]
     }
   end
 
@@ -76,14 +105,27 @@ class Api::V1::TopPerformersController < ApplicationController
     when "CareerTotalsQuery", "PerMinuteQuery"
       query_class.new(category: category.to_sym)
     when "TopPerformers::AccuracyQuery"
-      # AccuracyQuery doesn't take any parameters
-      # and only works with significant_strike_accuracy
-      if category != "significant_strike_accuracy"
+      # AccuracyQuery now accepts different accuracy categories
+      valid_accuracy_categories = %w[
+        significant_strike_accuracy
+        total_strike_accuracy
+        head_strike_accuracy
+        body_strike_accuracy
+        leg_strike_accuracy
+        distance_strike_accuracy
+        clinch_strike_accuracy
+        ground_strike_accuracy
+        takedown_accuracy
+      ]
+
+      unless valid_accuracy_categories.include?(category)
         raise ArgumentError,
               "Invalid category for accuracy scope. " \
-              "Only 'significant_strike_accuracy' is supported"
+              "Valid categories are: #{valid_accuracy_categories.join(', ')}"
       end
-      query_class.new
+
+      apply_threshold = params[:apply_threshold] != "false"
+      query_class.new(category: category, apply_threshold: apply_threshold)
     else
       # FightMaximumsQuery and RoundMaximumsQuery
       # take the statistic as first arg
@@ -114,14 +156,38 @@ class Api::V1::TopPerformersController < ApplicationController
     end
 
     def format_accuracy(result)
+      # Extract the stat type from the category name and ensure it's pluralized
+      stat_type = @category.gsub("_accuracy", "")
+      pluralized_stat = pluralize_stat_type(stat_type)
+
+      # The AccuracyQuery now returns dynamic keys based on the stat type
+      landed_key = :"total_#{pluralized_stat}"
+      attempted_key = :"total_#{pluralized_stat}_attempted"
+
       base_format(result).merge(
         accuracy_percentage: result[:accuracy_percentage],
-        total_significant_strikes: result[:total_significant_strikes],
-        total_significant_strikes_attempted:
-          result[:total_significant_strikes_attempted],
+        "total_#{pluralized_stat}" => result[landed_key],
+        "total_#{pluralized_stat}_attempted" => result[attempted_key],
         total_fights: result[:total_fights],
         fight_id: nil
       )
+    end
+
+    def pluralize_stat_type(stat_type)
+      # Map singular stat types to their plural forms
+      stat_pluralization = {
+        "total_strike" => "total_strikes",
+        "significant_strike" => "significant_strikes",
+        "head_strike" => "head_strikes",
+        "body_strike" => "body_strikes",
+        "leg_strike" => "leg_strikes",
+        "distance_strike" => "distance_strikes",
+        "clinch_strike" => "clinch_strikes",
+        "ground_strike" => "ground_strikes",
+        "takedown" => "takedowns"
+      }
+
+      stat_pluralization[stat_type] || stat_type
     end
 
     def format_fight(result)
