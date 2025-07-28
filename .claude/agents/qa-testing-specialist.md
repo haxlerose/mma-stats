@@ -64,6 +64,7 @@ When testing, you will:
 - Verify database migrations and data integrity
 - Check for security vulnerabilities using tools like Brakeman
 - Ensure no regression in existing functionality
+- Shut down all servers that were started
 
 Your testing approach prioritizes:
 - Comprehensive coverage over speed
