@@ -68,7 +68,12 @@ export default function TopPerformersPage() {
 
   // Handle scope change
   const handleScopeChange = (scope: TopPerformerScope) => {
-    updateURL({ scope });
+    // When switching to accuracy scope, always use significant_strike_accuracy category
+    if (scope === 'accuracy') {
+      updateURL({ scope, category: 'significant_strike_accuracy' });
+    } else {
+      updateURL({ scope });
+    }
   };
 
   // Handle category change
@@ -107,7 +112,8 @@ export default function TopPerformersPage() {
           </div>
           <CategorySelector 
             activeCategory={urlCategory} 
-            onCategoryChange={handleCategoryChange} 
+            onCategoryChange={handleCategoryChange}
+            scope={urlScope}
           />
         </div>
       </div>
@@ -116,13 +122,14 @@ export default function TopPerformersPage() {
       {!isLoading && !error && topPerformers.length > 0 && (
         <div className="text-center py-4">
           <h2 className="text-2xl font-semibold text-gray-900">
-            Top 10: {formatCategoryName(urlCategory)}
+            Top 10: {urlScope === 'accuracy' ? 'Significant Strike Accuracy' : formatCategoryName(urlCategory)}
           </h2>
           <p className="text-sm text-gray-600 mt-1">
             {urlScope === 'career' && 'Total career statistics'}
             {urlScope === 'fight' && 'Best single fight performance'}
             {urlScope === 'round' && 'Best single round performance'}
             {urlScope === 'per_minute' && 'Average per 15 minutes of fight time'}
+            {urlScope === 'accuracy' && 'Highest significant strike accuracy percentage'}
           </p>
         </div>
       )}

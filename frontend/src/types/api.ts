@@ -170,7 +170,7 @@ export interface StatisticalHighlightsResponse {
 }
 
 // Top Performers types
-export type TopPerformerScope = "career" | "fight" | "round" | "per_minute";
+export type TopPerformerScope = "career" | "fight" | "round" | "per_minute" | "accuracy";
 
 export type TopPerformerCategory =
   | "knockdowns"
@@ -194,7 +194,8 @@ export type TopPerformerCategory =
   | "takedowns_attempted"
   | "submission_attempts"
   | "reversals"
-  | "control_time_seconds";
+  | "control_time_seconds"
+  | "significant_strike_accuracy";
 
 export interface TopPerformer {
   fighter_id: number;
@@ -273,6 +274,11 @@ export interface TopPerformer {
   reversals_per_15_minutes?: number;
   control_time_seconds_per_15_minutes?: number;
   fight_duration_minutes?: number;
+  // Accuracy scope
+  value?: number;
+  accuracy_percentage?: number;
+  fight_count?: number;
+  total_fights?: number;
 }
 
 export interface TopPerformersResponse {

@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 class Api::V1::TopPerformersController < ApplicationController
-  VALID_SCOPES = %w[career fight round per_minute].freeze
+  VALID_SCOPES = %w[career fight round per_minute accuracy].freeze
 
   SCOPE_TO_QUERY_CLASS = {
     "career" => CareerTotalsQuery,
     "fight" => FightMaximumsQuery,
     "round" => RoundMaximumsQuery,
-    "per_minute" => PerMinuteQuery
+    "per_minute" => PerMinuteQuery,
+    "accuracy" => TopPerformers::AccuracyQuery
   }.freeze
 
   def index
@@ -74,6 +75,15 @@ class Api::V1::TopPerformersController < ApplicationController
     case query_class.name
     when "CareerTotalsQuery", "PerMinuteQuery"
       query_class.new(category: category.to_sym)
+    when "TopPerformers::AccuracyQuery"
+      # AccuracyQuery doesn't take any parameters
+      # and only works with significant_strike_accuracy
+      if category != "significant_strike_accuracy"
+        raise ArgumentError,
+              "Invalid category for accuracy scope. " \
+              "Only 'significant_strike_accuracy' is supported"
+      end
+      query_class.new
     else
       # FightMaximumsQuery and RoundMaximumsQuery
       # take the statistic as first arg
@@ -101,6 +111,17 @@ class Api::V1::TopPerformersController < ApplicationController
 
     def format_career(result)
       result
+    end
+
+    def format_accuracy(result)
+      base_format(result).merge(
+        accuracy_percentage: result[:accuracy_percentage],
+        total_significant_strikes: result[:total_significant_strikes],
+        total_significant_strikes_attempted:
+          result[:total_significant_strikes_attempted],
+        total_fights: result[:total_fights],
+        fight_id: nil
+      )
     end
 
     def format_fight(result)

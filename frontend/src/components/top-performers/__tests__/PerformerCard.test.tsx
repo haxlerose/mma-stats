@@ -213,4 +213,55 @@ describe('PerformerCard', () => {
     const fighterLink = screen.getByText('John Doe').closest('a');
     expect(fighterLink).toHaveAttribute('href', '/fighters/123');
   });
+
+  describe('Accuracy scope', () => {
+    it('displays accuracy percentage with one decimal place', () => {
+      const performer = {
+        ...basePerformer,
+        accuracy_percentage: 75.567,
+        value: 75.567,
+        total_significant_strikes: 150,
+        total_significant_strikes_attempted: 200,
+        fight_count: 10,
+      };
+
+      render(
+        <PerformerCard
+          performer={performer}
+          rank={1}
+          scope="accuracy"
+          category="significant_strikes"
+        />
+      );
+
+      expect(screen.getByText('75.6%')).toBeInTheDocument();
+      expect(screen.getByText('Landed:')).toBeInTheDocument();
+      expect(screen.getByText('150')).toBeInTheDocument();
+      expect(screen.getByText('Attempted:')).toBeInTheDocument();
+      expect(screen.getByText('200')).toBeInTheDocument();
+      expect(screen.getByText('Fight count:')).toBeInTheDocument();
+      expect(screen.getByText('10')).toBeInTheDocument();
+    });
+
+    it('handles missing accuracy fields gracefully', () => {
+      const performer = {
+        ...basePerformer,
+        value: 68.9,
+      };
+
+      render(
+        <PerformerCard
+          performer={performer}
+          rank={2}
+          scope="accuracy"
+          category="significant_strikes"
+        />
+      );
+
+      expect(screen.getByText('68.9%')).toBeInTheDocument();
+      // Check for all three "0" values
+      const zeroElements = screen.getAllByText('0');
+      expect(zeroElements).toHaveLength(3); // Landed, Attempted, Fight count
+    });
+  });
 });

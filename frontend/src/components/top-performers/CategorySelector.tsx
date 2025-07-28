@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { TopPerformerCategory } from '@/types/api';
+import { TopPerformerCategory, TopPerformerScope } from '@/types/api';
 
 interface CategorySelectorProps {
   activeCategory: TopPerformerCategory;
   onCategoryChange: (category: TopPerformerCategory) => void;
+  scope?: TopPerformerScope;
 }
 
 interface CategoryGroup {
@@ -66,14 +67,9 @@ const categoryGroups: CategoryGroup[] = [
   },
 ];
 
-export function CategorySelector({ activeCategory, onCategoryChange }: CategorySelectorProps) {
+export function CategorySelector({ activeCategory, onCategoryChange, scope }: CategorySelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Find active category label
-  const activeCategoryLabel = categoryGroups
-    .flatMap(group => group.categories)
-    .find(cat => cat.value === activeCategory)?.label || activeCategory;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -86,6 +82,28 @@ export function CategorySelector({ activeCategory, onCategoryChange }: CategoryS
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Special handling for accuracy scope
+  if (scope === 'accuracy') {
+    return (
+      <div className="relative" ref={dropdownRef}>
+        <button
+          type="button"
+          disabled
+          className="w-full md:w-64 px-4 py-2 text-left bg-card text-card-foreground border border-border rounded-md shadow-sm opacity-75 cursor-not-allowed"
+        >
+          <span className="flex items-center justify-between">
+            <span className="truncate">Significant Strike Accuracy</span>
+          </span>
+        </button>
+      </div>
+    );
+  }
+
+  // Find active category label
+  const activeCategoryLabel = categoryGroups
+    .flatMap(group => group.categories)
+    .find(cat => cat.value === activeCategory)?.label || activeCategory;
 
   // Handle keyboard navigation
   const handleKeyDown = (event: React.KeyboardEvent) => {

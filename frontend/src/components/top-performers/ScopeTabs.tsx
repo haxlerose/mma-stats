@@ -35,6 +35,11 @@ const scopeTabs: ScopeTab[] = [
     label: 'Per 15 min',
     description: 'Rate per 15 minutes',
   },
+  {
+    value: 'accuracy',
+    label: 'Accuracy',
+    description: 'Strike accuracy percentage',
+  },
 ];
 
 export function ScopeTabs({ activeScope, onScopeChange }: ScopeTabsProps) {

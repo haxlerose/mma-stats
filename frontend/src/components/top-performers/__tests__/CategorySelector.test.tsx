@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { CategorySelector } from '../CategorySelector';
-import { TopPerformerCategory } from '@/types/api';
+import { TopPerformerCategory, TopPerformerScope } from '@/types/api';
 
 describe('CategorySelector', () => {
   const mockOnCategoryChange = jest.fn();
@@ -158,5 +158,37 @@ describe('CategorySelector', () => {
 
     // Check control category
     expect(screen.getByRole('option', { name: 'Control Time' })).toBeInTheDocument();
+  });
+
+  it('renders disabled selector with accuracy scope', () => {
+    render(
+      <CategorySelector 
+        activeCategory="significant_strikes" 
+        onCategoryChange={mockOnCategoryChange}
+        scope="accuracy"
+      />
+    );
+
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+    expect(screen.getByText('Significant Strike Accuracy')).toBeInTheDocument();
+    
+    // Clicking should not open dropdown
+    fireEvent.click(button);
+    expect(screen.queryByText('Striking')).not.toBeInTheDocument();
+  });
+
+  it('renders normal selector without accuracy scope', () => {
+    render(
+      <CategorySelector 
+        activeCategory="knockdowns" 
+        onCategoryChange={mockOnCategoryChange}
+        scope="career"
+      />
+    );
+
+    const button = screen.getByRole('button');
+    expect(button).not.toBeDisabled();
+    expect(screen.getByText('Knockdowns')).toBeInTheDocument();
   });
 });

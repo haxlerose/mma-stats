@@ -21,7 +21,10 @@ export function PerformerCard({ performer, rank, scope, category }: PerformerCar
 
   // Helper to get the value based on scope and category
   const getValue = (): string => {
-    if (scope === 'career') {
+    if (scope === 'accuracy') {
+      const value = performer.accuracy_percentage ?? performer.value;
+      return typeof value === 'number' ? `${value.toFixed(1)}%` : '0%';
+    } else if (scope === 'career') {
       const value = performer[`total_${category}` as keyof TopPerformer];
       if (category === 'control_time_seconds' && typeof value === 'number') {
         return formatControlTime(value);
@@ -146,6 +149,23 @@ export function PerformerCard({ performer, rank, scope, category }: PerformerCar
               }
             </p>
           )}
+        </div>
+      )}
+
+      {/* Accuracy context */}
+      {scope === 'accuracy' && (
+        <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-600">
+          <div className="space-y-1">
+            <p>
+              <span className="font-medium">Landed:</span> {performer.total_significant_strikes || 0}
+            </p>
+            <p>
+              <span className="font-medium">Attempted:</span> {performer.total_significant_strikes_attempted || 0}
+            </p>
+            <p>
+              <span className="font-medium">Fight count:</span> {performer.total_fights || 0}
+            </p>
+          </div>
         </div>
       )}
     </div>

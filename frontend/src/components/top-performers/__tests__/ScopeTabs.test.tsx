@@ -22,6 +22,7 @@ describe('ScopeTabs', () => {
     expect(screen.getByText('Fight')).toBeInTheDocument();
     expect(screen.getByText('Round')).toBeInTheDocument();
     expect(screen.getByText('Per 15 min')).toBeInTheDocument();
+    expect(screen.getByText('Accuracy')).toBeInTheDocument();
   });
 
   it('highlights the active tab', () => {
@@ -77,6 +78,10 @@ describe('ScopeTabs', () => {
     expect(screen.getByText('Per 15 min').closest('button')).toHaveAttribute(
       'title',
       'Rate per 15 minutes'
+    );
+    expect(screen.getByText('Accuracy').closest('button')).toHaveAttribute(
+      'title',
+      'Strike accuracy percentage'
     );
   });
 

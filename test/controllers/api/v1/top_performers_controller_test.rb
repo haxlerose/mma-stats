@@ -396,4 +396,83 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
     get api_v1_top_performers_url(scope: "career", category: "knockdowns")
     assert_response :success
   end
+
+  test "should get top performers for accuracy scope" do
+    # Create fighters with enough fights to qualify (minimum 5)
+    accurate_fighter = Fighter.create!(name: "Accurate Fighter")
+    medium_fighter = Fighter.create!(name: "Medium Fighter")
+
+    # Create 5 fights for each fighter
+    5.times do |i|
+      event = Event.create!(
+        name: "UFC #{200 + i}",
+        date: Date.new(2023, 3 + i, 1),
+        location: "Location #{i}"
+      )
+
+      # Accurate fighter fights
+      fight1 = Fight.create!(
+        event: event,
+        bout: "Accurate Fighter vs Opponent #{i}",
+        outcome: "Accurate Fighter wins",
+        weight_class: "Lightweight"
+      )
+      FightStat.create!(
+        fight: fight1,
+        fighter: accurate_fighter,
+        round: 1,
+        significant_strikes: 45,
+        significant_strikes_attempted: 50 # 90% accuracy
+      )
+
+      # Medium fighter fights
+      fight2 = Fight.create!(
+        event: event,
+        bout: "Medium Fighter vs Opponent #{i}",
+        outcome: "Medium Fighter wins",
+        weight_class: "Lightweight"
+      )
+      FightStat.create!(
+        fight: fight2,
+        fighter: medium_fighter,
+        round: 1,
+        significant_strikes: 30,
+        significant_strikes_attempted: 50 # 60% accuracy
+      )
+    end
+
+    get api_v1_top_performers_url(
+      scope: "accuracy",
+      category: "significant_strike_accuracy"
+    )
+
+    assert_response :success
+    response_data = response.parsed_body
+
+    assert_equal "accuracy", response_data["meta"]["scope"]
+    assert_equal "significant_strike_accuracy",
+                 response_data["meta"]["category"]
+
+    top_performers = response_data["top_performers"]
+    assert_operator top_performers.length, :<=, 10
+
+    # Check that accurate fighter is ranked higher
+    assert_equal "Accurate Fighter", top_performers.first["fighter_name"]
+    assert_equal 90.0, top_performers.first["accuracy_percentage"]
+
+    # Find medium fighter in results
+    medium_result = top_performers.find do |p|
+      p["fighter_name"] == "Medium Fighter"
+    end
+    assert_not_nil medium_result
+    assert_equal 60.0, medium_result["accuracy_percentage"]
+  end
+
+  test "should return error for invalid category with accuracy scope" do
+    get api_v1_top_performers_url(scope: "accuracy", category: "knockdowns")
+
+    assert_response :bad_request
+    response_data = response.parsed_body
+    assert response_data["error"].present?
+  end
 end
