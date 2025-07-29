@@ -3,6 +3,9 @@
 # Seeds the database with UFC data from CSV files and any missing data
 # This file is idempotent - it can be run multiple times safely
 
+# Require the migration class in case we need to run it manually
+require_relative "migrate/20250729184129_create_fight_durations_materialized_view"
+
 puts "Starting database seeding..."
 start_time = Time.current
 
@@ -178,4 +181,34 @@ end
 
 total_time = Time.current - start_time
 puts "\n=== Seeding completed in #{total_time.round(2)} seconds ==="
-puts "Database is ready!"
+
+# Ensure materialized views exist and are refreshed
+puts "\n=== Managing materialized views ==="
+begin
+  # Check if the materialized view exists
+  view_exists = ActiveRecord::Base.connection.execute(
+    "SELECT 1 FROM pg_matviews WHERE matviewname = 'fight_durations'"
+  ).any?
+  
+  if view_exists
+    # Refresh existing view
+    ActiveRecord::Base.connection.execute(
+      "REFRESH MATERIALIZED VIEW fight_durations"
+    )
+    puts "✓ Materialized view 'fight_durations' refreshed"
+  else
+    # Create the view if it doesn't exist (shouldn't happen if migrations ran properly)
+    puts "⚠ Materialized view 'fight_durations' not found. Creating it now..."
+    
+    # Run the migration directly
+    migration = CreateFightDurationsMaterializedView.new
+    migration.up
+    
+    puts "✓ Materialized view 'fight_durations' created and populated"
+  end
+rescue StandardError => e
+  puts "✗ Error managing materialized views: #{e.message}"
+  puts "  This might happen if the migration hasn't run yet."
+end
+
+puts "\nDatabase is ready!"
