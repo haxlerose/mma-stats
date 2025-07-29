@@ -2,7 +2,15 @@
 
 module TopPerformers
   # Calculates minimum attempt thresholds for accuracy statistics
-  # Formula: (Total Attempts / Total Fight Time) × 60 × 25
+  #
+  # Formula: (Total Attempts / Total Fight Time) × 1500
+  # Where 1500 seconds = 25 minutes (5 rounds × 5 minutes)
+  #
+  # This calculates the average number of attempts per second across all fights,
+  # then multiplies by 1500 seconds to estimate the average number of attempts
+  # in a full 5-round fight. This value is used as the minimum threshold for
+  # inclusion in top 10 accuracy rankings, ensuring fighters have a meaningful
+  # sample size of attempts.
   class MinimumAttemptThresholdQuery
     CATEGORY_MAPPINGS = AccuracyQuery::CATEGORY_MAPPINGS
 
@@ -17,8 +25,8 @@ module TopPerformers
       attempt_rate_per_second = calculate_average_attempt_rate_per_second
       return 0 if attempt_rate_per_second.zero?
 
-      # Convert to per minute, then multiply by 25
-      # (attempts per second × 60) × 25
+      # Calculate average attempts in a 5-round fight (25 min = 1500 sec)
+      # attempts per second × 1500 seconds
       threshold = attempt_rate_per_second * 60 * 25
       threshold.round
     end
