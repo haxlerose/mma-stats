@@ -98,41 +98,51 @@ module TopPerformers
     end
 
     def fighters_with_accuracy
-      landed_column = @mapping[:landed]
-      attempted_column = @mapping[:attempted]
+      fighter_stats = fetch_fighter_stats
+      map_fighter_results(fighter_stats)
+    end
 
-      sql = <<~SQL.squish
-        WITH fighter_career_stats AS (
-          SELECT
-            f.id as fighter_id,
-            f.name as fighter_name,
-            COUNT(DISTINCT fs.fight_id) as total_fights,
-            SUM(fs.#{landed_column}) as total_landed,
-            SUM(fs.#{attempted_column}) as total_attempted
-          FROM fighters f
-          JOIN fight_stats fs ON f.id = fs.fighter_id
-          GROUP BY f.id, f.name
-          HAVING SUM(fs.#{attempted_column}) > 0
+    def fetch_fighter_stats
+      # Use ActiveRecord query interface instead of raw SQL to prevent injection
+      # This approach is safer and leverages Rails' built-in protections
+      quoted_landed = connection.quote_column_name(landed_column)
+      quoted_attempted = connection.quote_column_name(attempted_column)
+
+      FightStat
+        .joins("JOIN fighters f ON f.id = fight_stats.fighter_id")
+        .group("f.id", "f.name")
+        .having("SUM(fight_stats.#{quoted_attempted}) > 0")
+        .pluck(
+          Arel.sql("f.id"),
+          Arel.sql("f.name"),
+          Arel.sql("COUNT(DISTINCT fight_stats.fight_id)"),
+          Arel.sql("SUM(fight_stats.#{quoted_landed})"),
+          Arel.sql("SUM(fight_stats.#{quoted_attempted})")
         )
-        SELECT
-          fighter_id,
-          fighter_name,
-          total_fights,
-          total_landed,
-          total_attempted
-        FROM fighter_career_stats
-      SQL
+    end
 
-      results = ActiveRecord::Base.connection.execute(sql)
-      results.map do |row|
+    def map_fighter_results(fighter_stats)
+      fighter_stats.map do |row|
         {
-          fighter_id: row["fighter_id"],
-          fighter_name: row["fighter_name"],
-          total_fights: row["total_fights"],
-          total_landed: row["total_landed"].to_i,
-          total_attempted: row["total_attempted"].to_i
+          fighter_id: row[0],
+          fighter_name: row[1],
+          total_fights: row[2],
+          total_landed: row[3].to_i,
+          total_attempted: row[4].to_i
         }
       end
+    end
+
+    def landed_column
+      @mapping[:landed]
+    end
+
+    def attempted_column
+      @mapping[:attempted]
+    end
+
+    def connection
+      ActiveRecord::Base.connection
     end
 
     def calculate_accuracy_percentage(fighter_data)

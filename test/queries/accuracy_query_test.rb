@@ -276,6 +276,30 @@ class AccuracyQueryTest < ActiveSupport::TestCase
     assert_equal [], result
   end
 
+  test "validates column names are properly sanitized" do
+    # This test ensures the query is safe from SQL injection
+    # by verifying that column names are from the whitelist
+    query = AccuracyQuery.new(category: "significant_strike_accuracy")
+
+    # Access private method for testing
+    landed_column = query.send(:landed_column)
+    attempted_column = query.send(:attempted_column)
+
+    # Verify columns are from the whitelist
+    assert_equal "significant_strikes", landed_column
+    assert_equal "significant_strikes_attempted", attempted_column
+
+    # Verify they are valid FightStat columns
+    assert_includes FightStat.column_names, landed_column
+    assert_includes FightStat.column_names, attempted_column
+  end
+
+  test "raises error for invalid category to prevent injection" do
+    assert_raises ArgumentError do
+      AccuracyQuery.new(category: "invalid'; DROP TABLE fighters; --")
+    end
+  end
+
   test "includes fighters with minimum total fights with partial attempts" do
     fighter = Fighter.create!(name: "Jon Jones")
     # 3 fights with strikes

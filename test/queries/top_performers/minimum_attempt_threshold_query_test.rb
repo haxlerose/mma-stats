@@ -142,6 +142,31 @@ module TopPerformers
       end
     end
 
+    test "validates column names are properly sanitized" do
+      # This test ensures the query is safe from SQL injection
+      # by verifying that column names are from the whitelist
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+
+      # Access private method for testing
+      attempted_column = query.send(:attempted_column)
+
+      # Verify column is from the whitelist
+      assert_equal "significant_strikes_attempted", attempted_column
+
+      # Verify it's a valid FightStat column
+      assert_includes FightStat.column_names, attempted_column
+    end
+
+    test "raises error for SQL injection attempt in category" do
+      assert_raises ArgumentError do
+        MinimumAttemptThresholdQuery.new(
+          category: "invalid'; DROP TABLE fighters; --"
+        )
+      end
+    end
+
     test "rounds threshold to nearest integer" do
       create_fight_with_stats(
         significant_strikes_attempted: 100,
