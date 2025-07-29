@@ -205,6 +205,207 @@ class FighterStatisticalHighlightsTest < ActiveSupport::TestCase
     end
   end
 
+  # Tests for 2-year activity filter (TDD RED phase)
+  test "strikes leader excludes fighters inactive for more than 2 years" do
+    # Create an old event from 3 years ago
+    old_event = Event.create!(
+      name: "UFC 200: Old Event",
+      date: 3.years.ago.to_date,
+      location: "Las Vegas, Nevada"
+    )
+
+    # Create an inactive fighter with great stats but old fights
+    inactive_striker = Fighter.create!(
+      name: "Inactive Striker",
+      height_in_inches: 72,
+      reach_in_inches: 74,
+      birth_date: "1985-01-01"
+    )
+
+    # Create 5 old fights with high strike volume
+    5.times do |i|
+      fight = create_fight(
+        old_event,
+        "#{inactive_striker.name} vs Opponent #{i}",
+        "W/L",
+        3,
+        "5:00"
+      )
+
+      3.times do |round|
+        create_fight_stat(
+          fight,
+          inactive_striker,
+          round + 1,
+          {
+            significant_strikes: 50,
+            significant_strikes_attempted: 55,
+            total_strikes: 60,
+            total_strikes_attempted: 65
+          }
+        )
+      end
+    end
+
+    # Also create a recent active fighter with lower stats
+    create_high_volume_striker_data(@striker)
+
+    leader = Fighter.strikes_leader
+    
+    # The inactive fighter should not be the leader despite having better stats
+    assert_not_nil leader
+    assert_not_equal "Inactive Striker", leader[:fighter][:name]
+  end
+
+  test "submission attempts leader excludes fighters inactive for more than 2 years" do
+    # Create an old event from 3 years ago
+    old_event = Event.create!(
+      name: "UFC 199: Old Event",
+      date: 3.years.ago.to_date,
+      location: "Los Angeles, California"
+    )
+
+    # Create an inactive fighter with great submission stats
+    inactive_grappler = Fighter.create!(
+      name: "Inactive Grappler",
+      height_in_inches: 70,
+      reach_in_inches: 72,
+      birth_date: "1986-01-01"
+    )
+
+    # Create 5 old fights with high submission attempts
+    5.times do |i|
+      fight = create_fight(
+        old_event,
+        "#{inactive_grappler.name} vs Opponent #{i}",
+        "W/L",
+        3,
+        "5:00"
+      )
+
+      3.times do |round|
+        create_fight_stat(
+          fight,
+          inactive_grappler,
+          round + 1,
+          {
+            submission_attempts: 5,
+            takedowns: 3,
+            takedowns_attempted: 4
+          }
+        )
+      end
+    end
+
+    # Also create a recent active fighter with lower stats
+    create_submission_specialist_data(@grappler)
+
+    leader = Fighter.submission_attempts_leader
+    
+    # The inactive fighter should not be the leader despite having better stats
+    assert_not_nil leader
+    assert_not_equal "Inactive Grappler", leader[:fighter][:name]
+  end
+
+  test "takedowns leader excludes fighters inactive for more than 2 years" do
+    # Create an old event from 3 years ago
+    old_event = Event.create!(
+      name: "UFC 198: Old Event",
+      date: 3.years.ago.to_date,
+      location: "Curitiba, Brazil"
+    )
+
+    # Create an inactive wrestler with great takedown stats
+    inactive_wrestler = Fighter.create!(
+      name: "Inactive Wrestler",
+      height_in_inches: 68,
+      reach_in_inches: 70,
+      birth_date: "1984-01-01"
+    )
+
+    # Create 5 old fights with high takedown volume
+    5.times do |i|
+      fight = create_fight(
+        old_event,
+        "#{inactive_wrestler.name} vs Opponent #{i}",
+        "W/L",
+        3,
+        "5:00"
+      )
+
+      3.times do |round|
+        create_fight_stat(
+          fight,
+          inactive_wrestler,
+          round + 1,
+          {
+            takedowns: 5,
+            takedowns_attempted: 6
+          }
+        )
+      end
+    end
+
+    # Also create a recent active fighter with lower stats
+    create_wrestling_specialist_data(@grappler)
+
+    leader = Fighter.takedowns_leader
+    
+    # The inactive fighter should not be the leader despite having better stats
+    assert_not_nil leader
+    assert_not_equal "Inactive Wrestler", leader[:fighter][:name]
+  end
+
+  test "knockdowns leader excludes fighters inactive for more than 2 years" do
+    # Create an old event from 3 years ago
+    old_event = Event.create!(
+      name: "UFC 197: Old Event",
+      date: 3.years.ago.to_date,
+      location: "Las Vegas, Nevada"
+    )
+
+    # Create an inactive knockout artist with great knockdown stats
+    inactive_finisher = Fighter.create!(
+      name: "Inactive Finisher",
+      height_in_inches: 75,
+      reach_in_inches: 78,
+      birth_date: "1983-01-01"
+    )
+
+    # Create 5 old fights with high knockdowns
+    5.times do |i|
+      fight = create_fight(
+        old_event,
+        "#{inactive_finisher.name} vs Opponent #{i}",
+        "W/L",
+        2,
+        "3:00"
+      )
+
+      2.times do |round|
+        create_fight_stat(
+          fight,
+          inactive_finisher,
+          round + 1,
+          {
+            knockdowns: 2,
+            significant_strikes: 20,
+            significant_strikes_attempted: 25
+          }
+        )
+      end
+    end
+
+    # Also create a recent active fighter with lower stats
+    create_knockout_artist_data(@finisher)
+
+    leader = Fighter.knockdowns_leader
+    
+    # The inactive fighter should not be the leader despite having better stats
+    assert_not_nil leader
+    assert_not_equal "Inactive Finisher", leader[:fighter][:name]
+  end
+
   test "returns empty when no fighters meet minimums" do
     # Don't create any qualifying data
 

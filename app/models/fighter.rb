@@ -402,6 +402,8 @@ class Fighter < ApplicationRecord
   end
 
   def self.strikes_leader
+    two_years_ago = 2.years.ago.to_date
+
     sql = <<~SQL.squish
       WITH fighter_fight_totals AS (
         SELECT
@@ -424,6 +426,8 @@ class Fighter < ApplicationRecord
         FROM fighters
         JOIN fight_stats ON fight_stats.fighter_id = fighters.id
         JOIN fights ON fights.id = fight_stats.fight_id
+        JOIN events ON events.id = fights.event_id
+        WHERE events.date >= $1
         GROUP BY fighters.id, fighters.slug, fighters.name, fighters.height_in_inches,
                  fighters.reach_in_inches, fighters.birth_date, fights.id
       )
@@ -443,13 +447,19 @@ class Fighter < ApplicationRecord
       LIMIT 1
     SQL
 
-    result = connection.exec_query(sql)
+    result = connection.exec_query(
+      sql,
+      "Fighter.strikes_leader",
+      [two_years_ago]
+    )
     return nil if result.empty?
 
     build_leader_result_from_sql(result.first, "strikes_per_15_min")
   end
 
   def self.submission_attempts_leader
+    two_years_ago = 2.years.ago.to_date
+
     sql = <<~SQL.squish
       WITH fighter_fight_totals AS (
         SELECT
@@ -471,6 +481,8 @@ class Fighter < ApplicationRecord
         FROM fighters
         JOIN fight_stats ON fight_stats.fighter_id = fighters.id
         JOIN fights ON fights.id = fight_stats.fight_id
+        JOIN events ON events.id = fights.event_id
+        WHERE events.date >= $1
         GROUP BY fighters.id, fighters.slug, fighters.name, fighters.height_in_inches,
                  fighters.reach_in_inches, fighters.birth_date, fights.id
       )
@@ -489,13 +501,19 @@ class Fighter < ApplicationRecord
       LIMIT 1
     SQL
 
-    result = connection.exec_query(sql)
+    result = connection.exec_query(
+      sql,
+      "Fighter.submission_attempts_leader",
+      [two_years_ago]
+    )
     return nil if result.empty?
 
     build_leader_result_from_sql(result.first, "submission_attempts_per_15_min")
   end
 
   def self.takedowns_leader
+    two_years_ago = 2.years.ago.to_date
+
     sql = <<~SQL.squish
       WITH fighter_fight_totals AS (
         SELECT
@@ -518,6 +536,8 @@ class Fighter < ApplicationRecord
         FROM fighters
         JOIN fight_stats ON fight_stats.fighter_id = fighters.id
         JOIN fights ON fights.id = fight_stats.fight_id
+        JOIN events ON events.id = fights.event_id
+        WHERE events.date >= $1
         GROUP BY fighters.id, fighters.slug, fighters.name, fighters.height_in_inches,
                  fighters.reach_in_inches, fighters.birth_date, fights.id
       )
@@ -537,13 +557,19 @@ class Fighter < ApplicationRecord
       LIMIT 1
     SQL
 
-    result = connection.exec_query(sql)
+    result = connection.exec_query(
+      sql,
+      "Fighter.takedowns_leader",
+      [two_years_ago]
+    )
     return nil if result.empty?
 
     build_leader_result_from_sql(result.first, "takedowns_per_15_min")
   end
 
   def self.knockdowns_leader
+    two_years_ago = 2.years.ago.to_date
+
     sql = <<~SQL.squish
       WITH fighter_fight_totals AS (
         SELECT
@@ -565,6 +591,8 @@ class Fighter < ApplicationRecord
         FROM fighters
         JOIN fight_stats ON fight_stats.fighter_id = fighters.id
         JOIN fights ON fights.id = fight_stats.fight_id
+        JOIN events ON events.id = fights.event_id
+        WHERE events.date >= $1
         GROUP BY fighters.id, fighters.slug, fighters.name, fighters.height_in_inches,
                  fighters.reach_in_inches, fighters.birth_date, fights.id
       )
@@ -583,7 +611,11 @@ class Fighter < ApplicationRecord
       LIMIT 1
     SQL
 
-    result = connection.exec_query(sql)
+    result = connection.exec_query(
+      sql,
+      "Fighter.knockdowns_leader",
+      [two_years_ago]
+    )
     return nil if result.empty?
 
     build_leader_result_from_sql(result.first, "knockdowns_per_15_min")
