@@ -92,12 +92,6 @@ class ResultsQueryPerformanceTest < ActiveSupport::TestCase
                     :<,
                     0.1,
                     "Cached call should complete in under 100ms"
-
-    puts "\nPerformance Results:"
-    puts "First call (no cache): #{(time_without_cache * 1000).round(2)}ms"
-    puts "Second call (cached): #{(time_with_cache * 1000).round(2)}ms"
-    improvement = (time_without_cache / time_with_cache).round(1)
-    puts "Speed improvement: #{improvement}x"
   ensure
     Rails.cache = original_cache
   end
