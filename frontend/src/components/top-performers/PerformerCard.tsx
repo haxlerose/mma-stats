@@ -24,6 +24,18 @@ export function PerformerCard({ performer, rank, scope, category }: PerformerCar
     if (scope === 'accuracy') {
       const value = performer.accuracy_percentage ?? performer.value;
       return typeof value === 'number' ? `${value.toFixed(1)}%` : '0%';
+    } else if (scope === 'results') {
+      if (category === 'total_wins') {
+        return performer.total_wins?.toString() || '0';
+      } else if (category === 'total_losses') {
+        return performer.total_losses?.toString() || '0';
+      } else if (category === 'win_percentage') {
+        const percentage = performer.win_percentage;
+        return typeof percentage === 'number' ? `${percentage.toFixed(1)}%` : '0%';
+      } else if (category === 'longest_win_streak') {
+        return performer.longest_win_streak?.toString() || '0';
+      }
+      return '0';
     } else if (scope === 'career') {
       const value = performer[`total_${category}` as keyof TopPerformer];
       if (category === 'control_time_seconds' && typeof value === 'number') {
@@ -199,6 +211,41 @@ export function PerformerCard({ performer, rank, scope, category }: PerformerCar
             <p>
               <span className="font-medium">Fight count:</span> {performer.total_fights || 0}
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Results context */}
+      {scope === 'results' && (
+        <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-600">
+          <div className="space-y-1">
+            {category === 'win_percentage' && (
+              <>
+                <p>
+                  <span className="font-medium">Wins:</span> {performer.total_wins || 0}
+                </p>
+                <p>
+                  <span className="font-medium">Losses:</span> {performer.total_losses || 0}
+                </p>
+                <p>
+                  <span className="font-medium">Total fights:</span> {(performer.total_wins || 0) + (performer.total_losses || 0)}
+                </p>
+              </>
+            )}
+            {category === 'longest_win_streak' && performer.total_wins !== undefined && (
+              <p>
+                <span className="font-medium">Career wins:</span> {performer.total_wins}
+              </p>
+            )}
+            {(category === 'total_wins' || category === 'total_losses') && (
+              <p>
+                <span className="font-medium">Win rate:</span> {
+                  performer.win_percentage !== undefined 
+                    ? `${performer.win_percentage.toFixed(1)}%` 
+                    : 'N/A'
+                }
+              </p>
+            )}
           </div>
         </div>
       )}

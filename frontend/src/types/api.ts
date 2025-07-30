@@ -170,7 +170,7 @@ export interface StatisticalHighlightsResponse {
 }
 
 // Top Performers types
-export type TopPerformerScope = "career" | "fight" | "round" | "per_minute" | "accuracy";
+export type TopPerformerScope = "career" | "fight" | "round" | "per_minute" | "accuracy" | "results";
 
 export type TopPerformerCategory =
   | "knockdowns"
@@ -203,7 +203,11 @@ export type TopPerformerCategory =
   | "distance_strike_accuracy"
   | "clinch_strike_accuracy"
   | "ground_strike_accuracy"
-  | "takedown_accuracy";
+  | "takedown_accuracy"
+  | "total_wins"
+  | "total_losses"
+  | "win_percentage"
+  | "longest_win_streak";
 
 export interface TopPerformer {
   fighter_id: number;
@@ -287,6 +291,11 @@ export interface TopPerformer {
   accuracy_percentage?: number;
   fight_count?: number;
   total_fights?: number;
+  // Results scope
+  total_wins?: number;
+  total_losses?: number;
+  win_percentage?: number;
+  longest_win_streak?: number;
 }
 
 export interface TopPerformersResponse {
@@ -296,6 +305,17 @@ export interface TopPerformersResponse {
     category: TopPerformerCategory;
   };
   minimum_thresholds?: {
+    significant_strike_accuracy?: number;
+    total_strike_accuracy?: number;
+    head_strike_accuracy?: number;
+    body_strike_accuracy?: number;
+    leg_strike_accuracy?: number;
+    distance_strike_accuracy?: number;
+    clinch_strike_accuracy?: number;
+    ground_strike_accuracy?: number;
+    takedown_accuracy?: number;
+  };
+  minimum_attempts_per_minute?: {
     significant_strike_accuracy?: number;
     total_strike_accuracy?: number;
     head_strike_accuracy?: number;

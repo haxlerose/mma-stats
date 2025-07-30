@@ -25,6 +25,7 @@ export default function TopPerformersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [minimumThreshold, setMinimumThreshold] = useState<number | null>(null);
+  const [minimumAttemptsPerMinute, setMinimumAttemptsPerMinute] = useState<number | null>(null);
   const [isFiltered, setIsFiltered] = useState(false);
 
   // Get scope and category from URL, with defaults
@@ -52,6 +53,7 @@ export default function TopPerformersPage() {
     setIsLoading(true);
     setError(null);
     setMinimumThreshold(null);
+    setMinimumAttemptsPerMinute(null);
     setIsFiltered(false);
 
     try {
@@ -66,14 +68,23 @@ export default function TopPerformersPage() {
       setTopPerformers(response.top_performers);
       
       // Set threshold info for accuracy scope
-      if (scope === 'accuracy' && response.minimum_thresholds) {
-        const thresholdKey = category as keyof typeof response.minimum_thresholds;
-        const threshold = response.minimum_thresholds[thresholdKey];
-        if (threshold !== undefined) {
-          setMinimumThreshold(threshold);
-          // If we got less than 10 results, filtering was applied
-          setIsFiltered(response.top_performers.length < 10);
+      if (scope === 'accuracy') {
+        if (response.minimum_thresholds) {
+          const thresholdKey = category as keyof typeof response.minimum_thresholds;
+          const threshold = response.minimum_thresholds[thresholdKey];
+          if (threshold !== undefined) {
+            setMinimumThreshold(threshold);
+          }
         }
+        if (response.minimum_attempts_per_minute) {
+          const thresholdKey = category as keyof typeof response.minimum_attempts_per_minute;
+          const attemptsPerMinute = response.minimum_attempts_per_minute[thresholdKey];
+          if (attemptsPerMinute !== undefined) {
+            setMinimumAttemptsPerMinute(attemptsPerMinute);
+          }
+        }
+        // If we got less than 10 results, filtering was applied
+        setIsFiltered(response.top_performers.length < 10);
       }
     } catch (err) {
       setError('Failed to load top performers. Please try again.');
@@ -96,9 +107,16 @@ export default function TopPerformersPage() {
       const isCurrentlyAccuracyCategory = urlCategory.includes('_accuracy');
       const newCategory = isCurrentlyAccuracyCategory ? urlCategory : 'significant_strike_accuracy';
       updateURL({ scope, category: newCategory });
+    } else if (scope === 'results') {
+      // When switching to results scope, default to total_wins if not already on a results category
+      const isCurrentlyResultsCategory = ['total_wins', 'total_losses', 'win_percentage', 'longest_win_streak'].includes(urlCategory);
+      const newCategory = isCurrentlyResultsCategory ? urlCategory : 'total_wins';
+      updateURL({ scope, category: newCategory });
     } else {
-      // When leaving accuracy scope, switch to a non-accuracy category
-      const newCategory = urlCategory.includes('_accuracy') ? 'knockdowns' : urlCategory;
+      // When leaving accuracy or results scope, switch to a non-accuracy/non-results category
+      const isSpecialCategory = urlCategory.includes('_accuracy') || 
+        ['total_wins', 'total_losses', 'win_percentage', 'longest_win_streak'].includes(urlCategory);
+      const newCategory = isSpecialCategory ? 'knockdowns' : urlCategory;
       updateURL({ scope, category: newCategory });
     }
   };
@@ -148,6 +166,17 @@ export default function TopPerformersPage() {
               onCategoryChange={handleCategoryChange}
             />
           </div>
+        ) : urlScope === 'results' ? (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+            <div className="text-sm text-gray-600">
+              Select a results statistic to view top performers:
+            </div>
+            <CategorySelector 
+              activeCategory={urlCategory} 
+              onCategoryChange={handleCategoryChange}
+              scope={urlScope}
+            />
+          </div>
         ) : (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
             <div className="text-sm text-gray-600">
@@ -174,6 +203,7 @@ export default function TopPerformersPage() {
             {urlScope === 'round' && 'Best single round performance'}
             {urlScope === 'per_minute' && 'Average per 15 minutes of fight time'}
             {urlScope === 'accuracy' && `Highest ${formatCategoryName(urlCategory).toLowerCase()} percentage`}
+            {urlScope === 'results' && 'Career win/loss records and streaks'}
           </p>
         </div>
       )}
@@ -196,9 +226,12 @@ export default function TopPerformersPage() {
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Minimum Activity Requirement</p>
               <p>
-                Fighters must attempt at least {minimumThreshold.toFixed(1)} {
+                Fighters must average at least {minimumThreshold.toFixed(1)} {
                   urlCategory.replace('_accuracy', '').replace(/_/g, ' ')
-                } per minute to qualify for this ranking.
+                } attempts over a full 5-round (25 minute) fight to qualify for this ranking.
+                {minimumAttemptsPerMinute !== null && (
+                  <span className="text-gray-700"> ({minimumAttemptsPerMinute.toFixed(2)} attempts per minute)</span>
+                )}
               </p>
               {isFiltered && (
                 <p className="mt-2">

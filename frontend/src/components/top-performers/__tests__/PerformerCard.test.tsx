@@ -222,7 +222,7 @@ describe('PerformerCard', () => {
         value: 75.567,
         total_significant_strikes: 150,
         total_significant_strikes_attempted: 200,
-        fight_count: 10,
+        total_fights: 10,
       };
 
       render(
@@ -230,7 +230,7 @@ describe('PerformerCard', () => {
           performer={performer}
           rank={1}
           scope="accuracy"
-          category="significant_strikes"
+          category="significant_strike_accuracy"
         />
       );
 
@@ -254,7 +254,7 @@ describe('PerformerCard', () => {
           performer={performer}
           rank={2}
           scope="accuracy"
-          category="significant_strikes"
+          category="significant_strike_accuracy"
         />
       );
 
@@ -262,6 +262,118 @@ describe('PerformerCard', () => {
       // Check for all three "0" values
       const zeroElements = screen.getAllByText('0');
       expect(zeroElements).toHaveLength(3); // Landed, Attempted, Fight count
+    });
+  });
+
+  describe('Results scope', () => {
+    it('displays total wins correctly', () => {
+      const performer = {
+        ...basePerformer,
+        total_wins: 25,
+        win_percentage: 83.3,
+      };
+
+      render(
+        <PerformerCard
+          performer={performer}
+          rank={1}
+          scope="results"
+          category="total_wins"
+        />
+      );
+
+      expect(screen.getByText('25')).toBeInTheDocument();
+      expect(screen.getByText('Win rate:')).toBeInTheDocument();
+      expect(screen.getByText('83.3%')).toBeInTheDocument();
+    });
+
+    it('displays total losses correctly', () => {
+      const performer = {
+        ...basePerformer,
+        total_losses: 5,
+        win_percentage: 83.3,
+      };
+
+      render(
+        <PerformerCard
+          performer={performer}
+          rank={2}
+          scope="results"
+          category="total_losses"
+        />
+      );
+
+      expect(screen.getByText('5')).toBeInTheDocument();
+      expect(screen.getByText('Win rate:')).toBeInTheDocument();
+      expect(screen.getByText('83.3%')).toBeInTheDocument();
+    });
+
+    it('displays win percentage with context', () => {
+      const performer = {
+        ...basePerformer,
+        win_percentage: 91.7,
+        total_wins: 22,
+        total_losses: 2,
+      };
+
+      render(
+        <PerformerCard
+          performer={performer}
+          rank={1}
+          scope="results"
+          category="win_percentage"
+        />
+      );
+
+      expect(screen.getByText('91.7%')).toBeInTheDocument();
+      expect(screen.getByText('Wins:')).toBeInTheDocument();
+      expect(screen.getByText('22')).toBeInTheDocument();
+      expect(screen.getByText('Losses:')).toBeInTheDocument();
+      expect(screen.getByText('2')).toBeInTheDocument();
+      expect(screen.getByText('Total fights:')).toBeInTheDocument();
+      expect(screen.getByText('24')).toBeInTheDocument();
+    });
+
+    it('displays longest win streak with career wins', () => {
+      const performer = {
+        ...basePerformer,
+        longest_win_streak: 15,
+        total_wins: 30,
+      };
+
+      render(
+        <PerformerCard
+          performer={performer}
+          rank={3}
+          scope="results"
+          category="longest_win_streak"
+        />
+      );
+
+      expect(screen.getByText('15')).toBeInTheDocument();
+      expect(screen.getByText('Career wins:')).toBeInTheDocument();
+      expect(screen.getByText('30')).toBeInTheDocument();
+    });
+
+    it('handles missing results data gracefully', () => {
+      const performer = {
+        ...basePerformer,
+      };
+
+      render(
+        <PerformerCard
+          performer={performer}
+          rank={4}
+          scope="results"
+          category="win_percentage"
+        />
+      );
+
+      expect(screen.getByText('0%')).toBeInTheDocument();
+      expect(screen.getByText('Total fights:')).toBeInTheDocument();
+      // Check for all zero values
+      const zeroElements = screen.getAllByText('0');
+      expect(zeroElements.length).toBeGreaterThan(0);
     });
   });
 });

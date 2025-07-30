@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 class Api::V1::TopPerformersController < ApplicationController
-  VALID_SCOPES = %w[career fight round per_minute accuracy].freeze
+  VALID_SCOPES = %w[career fight round per_minute accuracy results].freeze
 
   SCOPE_TO_QUERY_CLASS = {
     "career" => CareerTotalsQuery,
     "fight" => FightMaximumsQuery,
     "round" => RoundMaximumsQuery,
     "per_minute" => PerMinuteQuery,
-    "accuracy" => TopPerformers::AccuracyQuery
+    "accuracy" => TopPerformers::AccuracyQuery,
+    "results" => ResultsQuery
   }.freeze
 
   def index
@@ -70,15 +71,25 @@ class Api::V1::TopPerformersController < ApplicationController
   end
 
   def build_accuracy_response_with_threshold(results)
+    threshold = results[:minimum_attempts_threshold]
+    meta_additions = if threshold
+                       {
+                         minimum_attempts_threshold: threshold,
+                         minimum_attempts_per_minute: (
+                           threshold / 25.0
+                         ).round(2)
+                       }
+                     else
+                       {}
+                     end
+
     {
       top_performers: format_results(
         results[:fighters],
         params[:scope],
         params[:category]
       ),
-      meta: base_meta.merge(
-        minimum_attempts_threshold: results[:minimum_attempts_threshold]
-      )
+      meta: base_meta.merge(meta_additions)
     }
   end
 
@@ -105,32 +116,54 @@ class Api::V1::TopPerformersController < ApplicationController
     when "CareerTotalsQuery", "PerMinuteQuery"
       query_class.new(category: category.to_sym)
     when "TopPerformers::AccuracyQuery"
-      # AccuracyQuery now accepts different accuracy categories
-      valid_accuracy_categories = %w[
-        significant_strike_accuracy
-        total_strike_accuracy
-        head_strike_accuracy
-        body_strike_accuracy
-        leg_strike_accuracy
-        distance_strike_accuracy
-        clinch_strike_accuracy
-        ground_strike_accuracy
-        takedown_accuracy
-      ]
-
-      unless valid_accuracy_categories.include?(category)
-        raise ArgumentError,
-              "Invalid category for accuracy scope. " \
-              "Valid categories are: #{valid_accuracy_categories.join(', ')}"
-      end
-
-      apply_threshold = params[:apply_threshold] != "false"
-      query_class.new(category: category, apply_threshold: apply_threshold)
+      create_accuracy_query(query_class, category)
+    when "ResultsQuery"
+      create_results_query(query_class, category)
     else
       # FightMaximumsQuery and RoundMaximumsQuery
       # take the statistic as first arg
       query_class.new(category.to_s)
     end
+  end
+
+  def create_accuracy_query(query_class, category)
+    valid_accuracy_categories = %w[
+      significant_strike_accuracy
+      total_strike_accuracy
+      head_strike_accuracy
+      body_strike_accuracy
+      leg_strike_accuracy
+      distance_strike_accuracy
+      clinch_strike_accuracy
+      ground_strike_accuracy
+      takedown_accuracy
+    ]
+
+    unless valid_accuracy_categories.include?(category)
+      raise ArgumentError,
+            "Invalid category for accuracy scope. " \
+            "Valid categories are: #{valid_accuracy_categories.join(', ')}"
+    end
+
+    apply_threshold = params[:apply_threshold] != "false"
+    query_class.new(category: category, apply_threshold: apply_threshold)
+  end
+
+  def create_results_query(query_class, category)
+    valid_results_categories = %w[
+      total_wins
+      total_losses
+      win_percentage
+      longest_win_streak
+    ]
+
+    unless valid_results_categories.include?(category)
+      raise ArgumentError,
+            "Invalid category for results scope. " \
+            "Valid categories are: #{valid_results_categories.join(', ')}"
+    end
+
+    query_class.new(category: category.to_sym)
   end
 
   def format_results(results, scope, category)
@@ -211,6 +244,37 @@ class Api::V1::TopPerformersController < ApplicationController
         ),
         "total_#{@category}" => result[:total_statistic]
       )
+    end
+
+    def format_results(result)
+      base_results = {
+        fighter_id: result[:fighter_id],
+        fighter_name: result[:fighter_name],
+        fight_count: result[:fight_count]
+      }
+
+      case @category
+      when "total_wins"
+        base_results.merge(
+          total_wins: result[:total_wins],
+          win_percentage: result[:win_percentage]
+        )
+      when "total_losses"
+        base_results.merge(
+          total_losses: result[:total_losses],
+          win_percentage: result[:win_percentage]
+        )
+      when "win_percentage"
+        base_results.merge(
+          win_percentage: result[:win_percentage],
+          total_wins: result[:total_wins],
+          total_losses: result[:total_losses]
+        )
+      when "longest_win_streak"
+        base_results.merge(longest_win_streak: result[:longest_win_streak])
+      else
+        base_results
+      end
     end
 
     def base_format(result)

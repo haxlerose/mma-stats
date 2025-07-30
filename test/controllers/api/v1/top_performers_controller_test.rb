@@ -781,8 +781,18 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json_response = response.parsed_body
 
+    # Should include both total threshold and per-minute rate
     assert json_response["meta"].key?("minimum_attempts_threshold")
     assert json_response["meta"]["minimum_attempts_threshold"].positive?
+
+    assert json_response["meta"].key?("minimum_attempts_per_minute")
+    assert json_response["meta"]["minimum_attempts_per_minute"].positive?
+
+    # Per-minute rate should be threshold divided by 25
+    threshold = json_response["meta"]["minimum_attempts_threshold"]
+    expected_per_minute = threshold / 25.0
+    assert_equal expected_per_minute,
+                 json_response["meta"]["minimum_attempts_per_minute"]
   end
 
   test "accuracy scope can disable threshold with parameter" do
@@ -798,5 +808,433 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
 
     # When threshold is disabled, it shouldn't be in meta
     assert_not json_response["meta"].key?("minimum_attempts_threshold")
+  end
+
+  test "minimum_attempts_per_minute calculation handles rounding correctly" do
+    # Create test data to ensure we get a response
+    ensure_fight_durations_view_exists
+
+    event = Event.create!(
+      name: "UFC Rounding Test",
+      date: "2024-01-01",
+      location: "Las Vegas"
+    )
+    unique_id = "#{Time.now.to_f}_#{rand(1000)}"
+    fighter = Fighter.create!(name: "Rounding Test Fighter #{unique_id}")
+
+    5.times do |i|
+      fight = Fight.create!(
+        event: event,
+        bout: "Test Fight #{i} #{unique_id}",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        significant_strikes: 50,
+        significant_strikes_attempted: 100,
+        control_time_seconds: 0
+      )
+    end
+
+    # Refresh materialized view
+    ActiveRecord::Base.connection.execute(
+      "REFRESH MATERIALIZED VIEW fight_durations"
+    )
+
+    get api_v1_top_performers_path,
+        params: { scope: "accuracy", category: "significant_strike_accuracy" }
+
+    assert_response :success
+    json_response = response.parsed_body
+
+    # Check that per-minute is rounded to 2 decimal places
+    per_minute = json_response["meta"]["minimum_attempts_per_minute"]
+    assert_kind_of Float, per_minute
+    assert_equal per_minute.round(2), per_minute
+
+    # Verify the calculation
+    threshold = json_response["meta"]["minimum_attempts_threshold"]
+    expected_per_minute = (threshold / 25.0).round(2)
+    assert_equal expected_per_minute, per_minute
+  end
+
+  test "should get top performers for results scope with total_wins" do
+    # Create test data
+    winner = Fighter.create!(name: "Top Winner")
+    loser = Fighter.create!(name: "Top Loser")
+
+    # Create 5 wins for winner
+    5.times do |i|
+      event = Event.create!(
+        name: "UFC Win Event #{i}",
+        date: Date.new(2023, 1 + i, 1),
+        location: "Vegas"
+      )
+      fight = Fight.create!(
+        event: event,
+        bout: "Top Winner vs Opponent #{i}",
+        outcome: "W/L",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: winner,
+        round: 1,
+        significant_strikes: 10
+      )
+    end
+
+    # Create 2 losses for loser
+    2.times do |i|
+      event = Event.create!(
+        name: "UFC Loss Event #{i}",
+        date: Date.new(2023, 6 + i, 1),
+        location: "Vegas"
+      )
+      fight = Fight.create!(
+        event: event,
+        bout: "Opponent #{i} vs Top Loser",
+        outcome: "W/L",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: loser,
+        round: 1,
+        significant_strikes: 5
+      )
+    end
+
+    get api_v1_top_performers_url(scope: "results", category: "total_wins")
+    assert_response :success
+
+    response_data = response.parsed_body
+    assert_includes response_data, "top_performers"
+    assert_includes response_data, "meta"
+
+    top_performers = response_data["top_performers"]
+    assert_kind_of Array, top_performers
+    assert top_performers.length <= 10
+
+    # Find winner in results
+    winner_data = top_performers.find do |p|
+      p["fighter_name"] == "Top Winner"
+    end
+
+    assert_not_nil winner_data
+    assert_equal winner.id, winner_data["fighter_id"]
+    assert_equal 5, winner_data["total_wins"]
+    assert_equal 5, winner_data["fight_count"]
+    assert_nil winner_data["fight_id"]
+
+    # Meta should include scope and category info
+    meta = response_data["meta"]
+    assert_equal "results", meta["scope"]
+    assert_equal "total_wins", meta["category"]
+  end
+
+  test "should get top performers for results scope with total_losses" do
+    # Create test data
+    loser = Fighter.create!(name: "Fighter With Losses")
+
+    # Create 3 losses
+    3.times do |i|
+      event = Event.create!(
+        name: "UFC Loss #{i}",
+        date: Date.new(2023, 1 + i, 1),
+        location: "Vegas"
+      )
+      fight = Fight.create!(
+        event: event,
+        bout: "Winner #{i} vs Fighter With Losses",
+        outcome: "W/L",
+        weight_class: "Lightweight",
+        round: 2,
+        time: "3:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: loser,
+        round: 1,
+        significant_strikes: 10
+      )
+    end
+
+    get api_v1_top_performers_url(scope: "results", category: "total_losses")
+    assert_response :success
+
+    response_data = response.parsed_body
+    top_performers = response_data["top_performers"]
+
+    loser_data = top_performers.find do |p|
+      p["fighter_name"] == "Fighter With Losses"
+    end
+
+    assert_not_nil loser_data
+    assert_equal 3, loser_data["total_losses"]
+    assert_equal 3, loser_data["fight_count"]
+  end
+
+  test "should get top performers for results scope with win_percentage" do
+    # Create fighter with high win percentage (needs minimum 10 fights)
+    high_percentage = Fighter.create!(name: "High Win Percentage")
+
+    # Create 9 wins and 1 loss (90% win rate)
+    9.times do |i|
+      event = Event.create!(
+        name: "UFC Win #{i}",
+        date: Date.new(2023, 1 + i, 1),
+        location: "Vegas"
+      )
+      fight = Fight.create!(
+        event: event,
+        bout: "High Win Percentage vs Opponent #{i}",
+        outcome: "W/L",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: high_percentage,
+        round: 1,
+        significant_strikes: 10
+      )
+    end
+
+    # Add 1 loss
+    event = Event.create!(
+      name: "UFC Loss Event",
+      date: Date.new(2023, 10, 1),
+      location: "Vegas"
+    )
+    fight = Fight.create!(
+      event: event,
+      bout: "Winner vs High Win Percentage",
+      outcome: "W/L",
+      weight_class: "Lightweight",
+      round: 3,
+      time: "5:00"
+    )
+    FightStat.create!(
+      fight: fight,
+      fighter: high_percentage,
+      round: 1,
+      significant_strikes: 10
+    )
+
+    get api_v1_top_performers_url(
+      scope: "results",
+      category: "win_percentage"
+    )
+    assert_response :success
+
+    response_data = response.parsed_body
+    top_performers = response_data["top_performers"]
+
+    high_data = top_performers.find do |p|
+      p["fighter_name"] == "High Win Percentage"
+    end
+
+    assert_not_nil high_data
+    assert_equal 90.0, high_data["win_percentage"]
+    assert_equal 9, high_data["total_wins"]
+    assert_equal 10, high_data["fight_count"]
+  end
+
+  test "win_percentage results include total_losses" do
+    # Create fighter with 12 wins and 3 losses (80% win rate)
+    fighter_with_losses = Fighter.create!(name: "Fighter With Losses")
+
+    # Create 12 wins
+    12.times do |i|
+      event = Event.create!(
+        name: "UFC Win WL #{i}",
+        date: Date.new(2023, 1, i + 1),
+        location: "Test City"
+      )
+      fight = Fight.create!(
+        event: event,
+        bout: "Fighter With Losses vs Opponent #{i}",
+        outcome: "W/L",
+        weight_class: "Welterweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter_with_losses,
+        round: 1,
+        significant_strikes: 15
+      )
+    end
+
+    # Create 3 losses
+    3.times do |i|
+      event = Event.create!(
+        name: "UFC Loss WL #{i}",
+        date: Date.new(2023, 2, i + 1),
+        location: "Test City"
+      )
+      fight = Fight.create!(
+        event: event,
+        bout: "Winner #{i} vs Fighter With Losses",
+        outcome: "W/L",
+        weight_class: "Welterweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter_with_losses,
+        round: 1,
+        significant_strikes: 10
+      )
+    end
+
+    get api_v1_top_performers_url(
+      scope: "results",
+      category: "win_percentage"
+    )
+    assert_response :success
+
+    response_data = response.parsed_body
+    top_performers = response_data["top_performers"]
+
+    fighter_data = top_performers.find do |p|
+      p["fighter_name"] == "Fighter With Losses"
+    end
+
+    assert_not_nil fighter_data
+    assert_equal 15, fighter_data["fight_count"]
+    assert_equal 12, fighter_data["total_wins"]
+    assert_equal 3, fighter_data["total_losses"]
+    assert_equal 80.0, fighter_data["win_percentage"]
+  end
+
+  test "should get top performers for results scope with longest_win_streak" do
+    # Create fighter with win streak
+    streak_fighter = Fighter.create!(name: "Streak Fighter")
+
+    # Create event dates in chronological order for streak
+    dates = (1..6).map { |i| Date.new(2023, i, 1) }
+
+    # Create 4 consecutive wins (the streak)
+    4.times do |i|
+      event = Event.create!(
+        name: "UFC Streak Win #{i}",
+        date: dates[i],
+        location: "Vegas"
+      )
+      fight = Fight.create!(
+        event: event,
+        bout: "Streak Fighter vs Opponent #{i}",
+        outcome: "W/L",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: streak_fighter,
+        round: 1,
+        significant_strikes: 10
+      )
+    end
+
+    # Add a loss to break the streak
+    event = Event.create!(
+      name: "UFC Streak Loss",
+      date: dates[4],
+      location: "Vegas"
+    )
+    fight = Fight.create!(
+      event: event,
+      bout: "Winner vs Streak Fighter",
+      outcome: "W/L",
+      weight_class: "Lightweight",
+      round: 3,
+      time: "5:00"
+    )
+    FightStat.create!(
+      fight: fight,
+      fighter: streak_fighter,
+      round: 1,
+      significant_strikes: 10
+    )
+
+    # Add one more win after the loss
+    event = Event.create!(
+      name: "UFC After Loss Win",
+      date: dates[5],
+      location: "Vegas"
+    )
+    fight = Fight.create!(
+      event: event,
+      bout: "Streak Fighter vs Final Opponent",
+      outcome: "W/L",
+      weight_class: "Lightweight",
+      round: 3,
+      time: "5:00"
+    )
+    FightStat.create!(
+      fight: fight,
+      fighter: streak_fighter,
+      round: 1,
+      significant_strikes: 10
+    )
+
+    get api_v1_top_performers_url(
+      scope: "results",
+      category: "longest_win_streak"
+    )
+    assert_response :success
+
+    response_data = response.parsed_body
+    top_performers = response_data["top_performers"]
+
+    streak_data = top_performers.find do |p|
+      p["fighter_name"] == "Streak Fighter"
+    end
+
+    assert_not_nil streak_data
+    assert_equal 4, streak_data["longest_win_streak"]
+    assert_equal 6, streak_data["fight_count"]
+  end
+
+  test "should return error for invalid category with results scope" do
+    get api_v1_top_performers_url(scope: "results", category: "knockdowns")
+
+    assert_response :bad_request
+    response_data = response.parsed_body
+    assert response_data["error"].present?
+    assert_match(/Invalid category/, response_data["error"])
+  end
+
+  test "should accept all valid categories for results scope" do
+    valid_categories = %w[
+      total_wins
+      total_losses
+      win_percentage
+      longest_win_streak
+    ]
+
+    valid_categories.each do |category|
+      get api_v1_top_performers_url(scope: "results", category: category)
+      assert_response :success, "Failed for category: #{category}"
+
+      response_data = response.parsed_body
+      assert_equal "results", response_data["meta"]["scope"]
+      assert_equal category, response_data["meta"]["category"]
+    end
   end
 end

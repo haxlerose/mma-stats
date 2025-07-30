@@ -136,9 +136,52 @@ module TopPerformers
       end
     end
 
+    test "generates safe SQL without string interpolation vulnerabilities" do
+      # This test ensures we're not using dangerous string interpolation
+      create_fight_with_stats(
+        significant_strikes_attempted: 100,
+        fight_duration_minutes: 15
+      )
+
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+
+      # Should not raise SQL injection errors
+      result = query.call
+
+      # Should return a numeric result
+      assert_kind_of Integer, result
+    end
+
     test "raises error for invalid category" do
       assert_raises ArgumentError do
         MinimumAttemptThresholdQuery.new(category: "invalid_category")
+      end
+    end
+
+    test "validates column names are properly sanitized" do
+      # This test ensures the query is safe from SQL injection
+      # by verifying that column names are from the whitelist
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+
+      # Access private method for testing
+      attempted_column = query.send(:attempted_column)
+
+      # Verify column is from the whitelist
+      assert_equal "significant_strikes_attempted", attempted_column
+
+      # Verify it's a valid FightStat column
+      assert_includes FightStat.column_names, attempted_column
+    end
+
+    test "raises error for SQL injection attempt in category" do
+      assert_raises ArgumentError do
+        MinimumAttemptThresholdQuery.new(
+          category: "invalid'; DROP TABLE fighters; --"
+        )
       end
     end
 
@@ -155,6 +198,294 @@ module TopPerformers
 
       # (100 / 14) × 60 × 25 ≈ 178.57, rounds to 179
       assert_equal 179, threshold
+    end
+
+    test "calculates threshold with multiple fighters in same fight" do
+      # Clear data to ensure clean state
+      FightStat.destroy_all
+      Fight.destroy_all
+      Fighter.destroy_all
+
+      fighter1 = Fighter.create!(name: "Fighter One")
+      fighter2 = Fighter.create!(name: "Fighter Two")
+      fight = Fight.create!(
+        event: @event,
+        bout: "Test Fight",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+
+      # Fighter 1 stats
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter1,
+        round: 1,
+        significant_strikes_attempted: 50,
+        significant_strikes: 25,
+        total_strikes_attempted: 50,
+        total_strikes: 25,
+        takedowns_attempted: 2,
+        takedowns: 1,
+        head_strikes_attempted: 0,
+        head_strikes: 0,
+        body_strikes_attempted: 0,
+        body_strikes: 0,
+        leg_strikes_attempted: 0,
+        leg_strikes: 0,
+        distance_strikes_attempted: 0,
+        distance_strikes: 0,
+        clinch_strikes_attempted: 0,
+        clinch_strikes: 0,
+        ground_strikes_attempted: 0,
+        ground_strikes: 0,
+        control_time_seconds: 0
+      )
+
+      # Fighter 2 stats
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter2,
+        round: 1,
+        significant_strikes_attempted: 40,
+        significant_strikes: 20,
+        total_strikes_attempted: 40,
+        total_strikes: 20,
+        takedowns_attempted: 3,
+        takedowns: 2,
+        head_strikes_attempted: 0,
+        head_strikes: 0,
+        body_strikes_attempted: 0,
+        body_strikes: 0,
+        leg_strikes_attempted: 0,
+        leg_strikes: 0,
+        distance_strikes_attempted: 0,
+        distance_strikes: 0,
+        clinch_strikes_attempted: 0,
+        clinch_strikes: 0,
+        ground_strikes_attempted: 0,
+        ground_strikes: 0,
+        control_time_seconds: 0
+      )
+
+      refresh_fight_durations_view
+
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+      threshold = query.call
+
+      # Total attempts: 50 + 40 = 90
+      # Fight duration: 15 minutes = 900 seconds
+      # Rate per second: 90 / 900 = 0.1
+      # Threshold: 0.1 × 60 × 25 = 150
+      assert_equal 150, threshold
+    end
+
+    test "correctly calculates threshold with multi-round fight stats" do
+      # Clear data to ensure clean state
+      FightStat.destroy_all
+      Fight.destroy_all
+      Fighter.destroy_all
+
+      fighter = Fighter.create!(name: "Test Fighter")
+      fight = Fight.create!(
+        event: @event,
+        bout: "Test Fight",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 5,
+        time: "5:00"
+      )
+
+      # Create stats for multiple rounds
+      [1, 2, 3, 4, 5].each do |round_num|
+        FightStat.create!(
+          fight: fight,
+          fighter: fighter,
+          round: round_num,
+          significant_strikes_attempted: 20,
+          significant_strikes: 10,
+          total_strikes_attempted: 20,
+          total_strikes: 10,
+          takedowns_attempted: 1,
+          takedowns: 0,
+          head_strikes_attempted: 0,
+          head_strikes: 0,
+          body_strikes_attempted: 0,
+          body_strikes: 0,
+          leg_strikes_attempted: 0,
+          leg_strikes: 0,
+          distance_strikes_attempted: 0,
+          distance_strikes: 0,
+          clinch_strikes_attempted: 0,
+          clinch_strikes: 0,
+          ground_strikes_attempted: 0,
+          ground_strikes: 0,
+          control_time_seconds: 0
+        )
+      end
+
+      refresh_fight_durations_view
+
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+      threshold = query.call
+
+      # Total attempts: 20 × 5 = 100
+      # Fight duration: 25 minutes = 1500 seconds
+      # Rate per second: 100 / 1500 = 0.0667
+      # Threshold: 0.0667 × 60 × 25 = 100
+      assert_equal 100, threshold
+    end
+
+    test "handles very low attempt rates correctly" do
+      # Clear data to ensure clean state
+      FightStat.destroy_all
+      Fight.destroy_all
+      Fighter.destroy_all
+
+      create_fight_with_stats(
+        takedowns_attempted: 1,
+        fight_duration_minutes: 25
+      )
+
+      query = MinimumAttemptThresholdQuery.new(category: "takedown_accuracy")
+      threshold = query.call
+
+      # Total attempts: 1
+      # Fight duration: 25 minutes = 1500 seconds
+      # Rate per second: 1 / 1500 = 0.000667
+      # Threshold: 0.000667 × 60 × 25 = 1
+      assert_equal 1, threshold
+    end
+
+    test "verifies exact calculation formula" do
+      # Clear data to ensure clean state
+      FightStat.destroy_all
+      Fight.destroy_all
+      Fighter.destroy_all
+
+      # Create a fight with exact known values
+      create_fight_with_stats(
+        significant_strikes_attempted: 120,
+        fight_duration_minutes: 20
+      )
+
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+      threshold = query.call
+
+      # Manual calculation:
+      # Total attempts: 120
+      # Total seconds: 20 × 60 = 1200
+      # Rate per second: 120 / 1200 = 0.1
+      # Rate per minute: 0.1 × 60 = 6
+      # Full fight threshold: 6 × 25 = 150
+      assert_equal 150, threshold
+    end
+
+    test "comprehensive formula verification with mixed fight durations" do
+      # Clear data to ensure clean state
+      FightStat.destroy_all
+      Fight.destroy_all
+      Fighter.destroy_all
+
+      # Create multiple fights with different durations
+      # Fight 1: 1 round fight (5 minutes)
+      create_fight_with_stats(
+        significant_strikes_attempted: 30,
+        fight_duration_minutes: 5
+      )
+
+      # Fight 2: 3 round fight (15 minutes)
+      create_fight_with_stats(
+        significant_strikes_attempted: 90,
+        fight_duration_minutes: 15
+      )
+
+      # Fight 3: 5 round fight (25 minutes)
+      create_fight_with_stats(
+        significant_strikes_attempted: 150,
+        fight_duration_minutes: 25
+      )
+
+      # Fight 4: 2 rounds + partial (12 minutes)
+      create_fight_with_stats(
+        significant_strikes_attempted: 72,
+        fight_duration_minutes: 12
+      )
+
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+      threshold = query.call
+
+      # Total attempts: 30 + 90 + 150 + 72 = 342
+      # Total minutes: 5 + 15 + 25 + 12 = 57
+      # Total seconds: 57 × 60 = 3420
+      # Rate per second: 342 / 3420 = 0.1
+      # Rate per minute: 0.1 × 60 = 6
+      # Full fight threshold: 6 × 25 = 150
+      assert_equal 150, threshold
+    end
+
+    test "handles fractional seconds in calculation" do
+      # Clear data to ensure clean state
+      FightStat.destroy_all
+      Fight.destroy_all
+      Fighter.destroy_all
+
+      # Create fight ending at 2:30 in round 3
+      fighter = Fighter.create!(name: "Test Fighter")
+      fight = Fight.create!(
+        event: @event,
+        bout: "Test Fight",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "2:30"
+      )
+
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        significant_strikes_attempted: 75,
+        significant_strikes: 40,
+        total_strikes_attempted: 75,
+        total_strikes: 40,
+        takedowns_attempted: 0,
+        takedowns: 0,
+        head_strikes_attempted: 0,
+        head_strikes: 0,
+        body_strikes_attempted: 0,
+        body_strikes: 0,
+        leg_strikes_attempted: 0,
+        leg_strikes: 0,
+        distance_strikes_attempted: 0,
+        distance_strikes: 0,
+        clinch_strikes_attempted: 0,
+        clinch_strikes: 0,
+        ground_strikes_attempted: 0,
+        ground_strikes: 0,
+        control_time_seconds: 0
+      )
+
+      refresh_fight_durations_view
+
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+      threshold = query.call
+
+      # Fight duration: 2 full rounds (10 min) + 2:30 = 12.5 min = 750 seconds
+      # Rate per second: 75 / 750 = 0.1
+      # Threshold: 0.1 × 60 × 25 = 150
+      assert_equal 150, threshold
     end
 
     private

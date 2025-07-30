@@ -160,25 +160,47 @@ describe('CategorySelector', () => {
     expect(screen.getByRole('option', { name: 'Control Time' })).toBeInTheDocument();
   });
 
-  it('renders disabled selector with accuracy scope', () => {
-    render(
+  it('does not render selector for accuracy scope', () => {
+    const { container } = render(
       <CategorySelector 
-        activeCategory="significant_strikes" 
+        activeCategory="significant_strike_accuracy" 
         onCategoryChange={mockOnCategoryChange}
         scope="accuracy"
       />
     );
 
-    const button = screen.getByRole('button');
-    expect(button).toBeDisabled();
-    expect(screen.getByText('Significant Strike Accuracy')).toBeInTheDocument();
-    
-    // Clicking should not open dropdown
-    fireEvent.click(button);
-    expect(screen.queryByText('Striking')).not.toBeInTheDocument();
+    expect(container.firstChild).toBeNull();
   });
 
-  it('renders normal selector without accuracy scope', () => {
+  it('renders results categories when scope is results', () => {
+    render(
+      <CategorySelector 
+        activeCategory="total_wins" 
+        onCategoryChange={mockOnCategoryChange}
+        scope="results"
+      />
+    );
+
+    const button = screen.getByRole('button');
+    expect(screen.getByText('Total Wins')).toBeInTheDocument();
+    
+    fireEvent.click(button);
+    
+    // Check for results category group
+    expect(screen.getByText('Win/Loss Records')).toBeInTheDocument();
+    
+    // Check for results category options
+    expect(screen.getByRole('option', { name: 'Total Wins' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Total Losses' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Win Percentage' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Longest Win Streak' })).toBeInTheDocument();
+    
+    // Should not show other categories
+    expect(screen.queryByText('Striking')).not.toBeInTheDocument();
+    expect(screen.queryByText('Grappling')).not.toBeInTheDocument();
+  });
+
+  it('renders normal selector without accuracy or results scope', () => {
     render(
       <CategorySelector 
         activeCategory="knockdowns" 
