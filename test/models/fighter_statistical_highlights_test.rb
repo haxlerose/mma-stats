@@ -251,13 +251,13 @@ class FighterStatisticalHighlightsTest < ActiveSupport::TestCase
     create_high_volume_striker_data(@striker)
 
     leader = Fighter.strikes_leader
-    
+
     # The inactive fighter should not be the leader despite having better stats
     assert_not_nil leader
     assert_not_equal "Inactive Striker", leader[:fighter][:name]
   end
 
-  test "submission attempts leader excludes fighters inactive for more than 2 years" do
+  test "submission attempts leader excludes inactive fighters > 2 years" do
     # Create an old event from 3 years ago
     old_event = Event.create!(
       name: "UFC 199: Old Event",
@@ -301,7 +301,7 @@ class FighterStatisticalHighlightsTest < ActiveSupport::TestCase
     create_submission_specialist_data(@grappler)
 
     leader = Fighter.submission_attempts_leader
-    
+
     # The inactive fighter should not be the leader despite having better stats
     assert_not_nil leader
     assert_not_equal "Inactive Grappler", leader[:fighter][:name]
@@ -350,7 +350,7 @@ class FighterStatisticalHighlightsTest < ActiveSupport::TestCase
     create_wrestling_specialist_data(@grappler)
 
     leader = Fighter.takedowns_leader
-    
+
     # The inactive fighter should not be the leader despite having better stats
     assert_not_nil leader
     assert_not_equal "Inactive Wrestler", leader[:fighter][:name]
@@ -400,7 +400,7 @@ class FighterStatisticalHighlightsTest < ActiveSupport::TestCase
     create_knockout_artist_data(@finisher)
 
     leader = Fighter.knockdowns_leader
-    
+
     # The inactive fighter should not be the leader despite having better stats
     assert_not_nil leader
     assert_not_equal "Inactive Finisher", leader[:fighter][:name]
