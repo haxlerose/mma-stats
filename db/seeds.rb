@@ -4,7 +4,7 @@
 # This file is idempotent - it can be run multiple times safely
 
 # Require the migration class in case we need to run it manually
-require_relative "migrate/20250729184129_create_fight_durations_materialized_view"
+require_relative "migrate/20250730000001_add_ending_round_to_fight_durations"
 
 puts "Starting database seeding..."
 start_time = Time.current
@@ -201,7 +201,7 @@ begin
     puts "⚠ Materialized view 'fight_durations' not found. Creating it now..."
     
     # Run the migration directly
-    migration = CreateFightDurationsMaterializedView.new
+    migration = AddEndingRoundToFightDurations.new
     migration.up
     
     puts "✓ Materialized view 'fight_durations' created and populated"
