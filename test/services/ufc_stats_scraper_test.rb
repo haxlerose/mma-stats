@@ -62,6 +62,31 @@ class UfcStatsScraperTest < ActiveSupport::TestCase
     end
   end
 
+  test "extracts fight method without HTML or JavaScript" do
+    VCR.use_cassette("ufc_fight_method_extraction") do
+      fight_url = "http://ufcstats.com/fight-details/3c00f34f20c8a189"
+      fight_data = @scraper.scrape_fight_details(fight_url)
+
+      # Method should be a clean string like "KO/TKO", "Decision", "Submission", etc.
+      assert fight_data[:method].present?
+      
+      # Should not contain HTML tags or JavaScript
+      refute_match(/function/, fight_data[:method])
+      refute_match(/GoogleAnalytics/, fight_data[:method])
+      refute_match(/<\/?[^>]+>/, fight_data[:method])
+      refute_match(/Stats \| UFC/, fight_data[:method])
+      
+      # Should be a reasonable length for a fight method
+      assert fight_data[:method].length < 50
+      
+      # Should match expected method patterns
+      valid_methods = ["KO/TKO", "Decision", "Submission", "DQ", "No Contest", 
+                       "TKO - Doctor's Stoppage", "Could Not Continue"]
+      assert valid_methods.any? { |vm| fight_data[:method].include?(vm) },
+             "Method '#{fight_data[:method]}' doesn't match expected patterns"
+    end
+  end
+
   test "parses fighter statistics correctly" do
     VCR.use_cassette("ufc_fight_stats") do
       fight_url = "http://ufcstats.com/fight-details/3c00f34f20c8a189"

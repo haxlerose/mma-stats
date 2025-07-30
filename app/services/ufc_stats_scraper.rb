@@ -99,7 +99,7 @@ class UfcStatsScraper
       fighter1: extract_fighter1(doc),
       fighter2: extract_fighter2(doc),
       winner: extract_winner(doc),
-      method: extract_method(doc),
+      method: extract_method_from_details(doc),
       round: extract_round(doc),
       time: extract_time(doc),
       time_format: extract_time_format(doc),
@@ -393,6 +393,17 @@ class UfcStatsScraper
     # Extract text after "Referee:" and before any other label
     text = referee_element.text
     match = text.match(/Referee:\s*([^\n]+?)(?:\s+\w+:|$)/)
+    match ? match[1].strip : nil
+  end
+
+  def extract_method_from_details(doc)
+    method_element = doc.css("p.b-fight-details__text")
+                        .find { |p| p.text.include?("Method:") }
+    return nil unless method_element
+
+    # Extract text after "Method:" and before "Round:"
+    text = method_element.text
+    match = text.match(/Method:\s*([^\n]+?)(?:\s*Round:|$)/m)
     match ? match[1].strip : nil
   end
 
