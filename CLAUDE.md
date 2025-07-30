@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+ALWAYS use the appropriate subagent for the task at hand.
 
 ## Repository Overview
 
@@ -144,7 +145,7 @@ npm run lint               # ESLint check
 - **Importers**: Data import classes (e.g., EventImporter) for external data sources
 
 ## Development Standards
-- ALWAYS use the appropriate subagent for the job
+- IMPORTANT! ALWAYS use the appropriate subagent for the job
 
 ### Git Messages
 - **GIT COMMIT MESSAGES SHOULD ONLY CONTAIN CODE CHANGE DESCRIPTIONS**
@@ -165,7 +166,7 @@ npm run lint               # ESLint check
 
 ### ⚠️ CRITICAL REQUIREMENT
 **ALL PRODUCTION CODE MUST FOLLOW Test-Driven Development (TDD)**
-- **Red**: Write failing test describing desired behavior
+- **Red**: Write failing test describing desired behavior before writing code
 - **Green**: Write minimum code to make test pass
 - **Refactor**: Improve code using SOLID principles while keeping tests green
 
