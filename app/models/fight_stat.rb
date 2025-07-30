@@ -15,6 +15,8 @@ class FightStat < ApplicationRecord
 
   # Clear win streak cache when fight stats are modified
   def clear_fighter_win_streak_cache
+    return unless Rails.cache.respond_to?(:delete_matched)
+
     Rails.cache.delete_matched("fighter_top_win_streaks_*")
   end
 end
