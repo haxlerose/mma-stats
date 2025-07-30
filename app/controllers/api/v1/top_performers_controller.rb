@@ -71,15 +71,25 @@ class Api::V1::TopPerformersController < ApplicationController
   end
 
   def build_accuracy_response_with_threshold(results)
+    threshold = results[:minimum_attempts_threshold]
+    meta_additions = if threshold
+                       {
+                         minimum_attempts_threshold: threshold,
+                         minimum_attempts_per_minute: (
+                           threshold / 25.0
+                         ).round(2)
+                       }
+                     else
+                       {}
+                     end
+
     {
       top_performers: format_results(
         results[:fighters],
         params[:scope],
         params[:category]
       ),
-      meta: base_meta.merge(
-        minimum_attempts_threshold: results[:minimum_attempts_threshold]
-      )
+      meta: base_meta.merge(meta_additions)
     }
   end
 

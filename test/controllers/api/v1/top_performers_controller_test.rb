@@ -781,8 +781,18 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     json_response = response.parsed_body
 
+    # Should include both total threshold and per-minute rate
     assert json_response["meta"].key?("minimum_attempts_threshold")
     assert json_response["meta"]["minimum_attempts_threshold"].positive?
+
+    assert json_response["meta"].key?("minimum_attempts_per_minute")
+    assert json_response["meta"]["minimum_attempts_per_minute"].positive?
+
+    # Per-minute rate should be threshold divided by 25
+    threshold = json_response["meta"]["minimum_attempts_threshold"]
+    expected_per_minute = threshold / 25.0
+    assert_equal expected_per_minute,
+                 json_response["meta"]["minimum_attempts_per_minute"]
   end
 
   test "accuracy scope can disable threshold with parameter" do
@@ -798,6 +808,59 @@ class Api::V1::TopPerformersControllerTest < ActionDispatch::IntegrationTest
 
     # When threshold is disabled, it shouldn't be in meta
     assert_not json_response["meta"].key?("minimum_attempts_threshold")
+  end
+
+  test "minimum_attempts_per_minute calculation handles rounding correctly" do
+    # Create test data to ensure we get a response
+    ensure_fight_durations_view_exists
+
+    event = Event.create!(
+      name: "UFC Rounding Test",
+      date: "2024-01-01",
+      location: "Las Vegas"
+    )
+    unique_id = "#{Time.now.to_f}_#{rand(1000)}"
+    fighter = Fighter.create!(name: "Rounding Test Fighter #{unique_id}")
+
+    5.times do |i|
+      fight = Fight.create!(
+        event: event,
+        bout: "Test Fight #{i} #{unique_id}",
+        outcome: "Win",
+        weight_class: "Lightweight",
+        round: 3,
+        time: "5:00"
+      )
+      FightStat.create!(
+        fight: fight,
+        fighter: fighter,
+        round: 1,
+        significant_strikes: 50,
+        significant_strikes_attempted: 100,
+        control_time_seconds: 0
+      )
+    end
+
+    # Refresh materialized view
+    ActiveRecord::Base.connection.execute(
+      "REFRESH MATERIALIZED VIEW fight_durations"
+    )
+
+    get api_v1_top_performers_path,
+        params: { scope: "accuracy", category: "significant_strike_accuracy" }
+
+    assert_response :success
+    json_response = response.parsed_body
+
+    # Check that per-minute is rounded to 2 decimal places
+    per_minute = json_response["meta"]["minimum_attempts_per_minute"]
+    assert_kind_of Float, per_minute
+    assert_equal per_minute.round(2), per_minute
+
+    # Verify the calculation
+    threshold = json_response["meta"]["minimum_attempts_threshold"]
+    expected_per_minute = (threshold / 25.0).round(2)
+    assert_equal expected_per_minute, per_minute
   end
 
   test "should get top performers for results scope with total_wins" do

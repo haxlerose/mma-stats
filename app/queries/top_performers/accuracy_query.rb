@@ -98,91 +98,51 @@ module TopPerformers
     end
 
     def fighters_with_accuracy
-      landed_column = @mapping[:landed]
-      attempted_column = @mapping[:attempted]
-
-      # Validate column names to prevent SQL injection
-      validate_column_names!(landed_column, attempted_column)
-
-      fighter_stats = build_fighter_stats_query(landed_column, attempted_column)
-      format_fighter_stats(fighter_stats)
+      fighter_stats = fetch_fighter_stats
+      map_fighter_results(fighter_stats)
     end
 
-    def build_fighter_stats_query(landed_column, attempted_column)
-      fighters_table = Fighter.arel_table
-      fight_stats_table = FightStat.arel_table
+    def fetch_fighter_stats
+      # Use ActiveRecord query interface instead of raw SQL to prevent injection
+      # This approach is safer and leverages Rails' built-in protections
+      quoted_landed = connection.quote_column_name(landed_column)
+      quoted_attempted = connection.quote_column_name(attempted_column)
 
-      Fighter
-        .joins(:fight_stats)
-        .group(fighters_table[:id], fighters_table[:name])
-        .select(
-          build_select_columns(
-            fighters_table,
-            fight_stats_table,
-            landed_column,
-            attempted_column
-          )
-        )
-        .having(
-          fight_stats_table[attempted_column].sum.gt(0)
+      FightStat
+        .joins("JOIN fighters f ON f.id = fight_stats.fighter_id")
+        .group("f.id", "f.name")
+        .having("SUM(fight_stats.#{quoted_attempted}) > 0")
+        .pluck(
+          Arel.sql("f.id"),
+          Arel.sql("f.name"),
+          Arel.sql("COUNT(DISTINCT fight_stats.fight_id)"),
+          Arel.sql("SUM(fight_stats.#{quoted_landed})"),
+          Arel.sql("SUM(fight_stats.#{quoted_attempted})")
         )
     end
 
-    def build_select_columns(
-      fighters_table, fight_stats_table,
-      landed_column, attempted_column
-    )
-      [
-        fighters_table[:id].as("fighter_id"),
-        fighters_table[:name].as("fighter_name"),
-        fight_stats_table[:fight_id]
-          .count(true).as("total_fights"),
-        fight_stats_table[landed_column]
-          .sum.as("total_landed"),
-        fight_stats_table[attempted_column]
-          .sum.as("total_attempted")
-      ]
-    end
-
-    def format_fighter_stats(fighter_stats)
+    def map_fighter_results(fighter_stats)
       fighter_stats.map do |row|
         {
-          fighter_id: row.fighter_id,
-          fighter_name: row.fighter_name,
-          total_fights: row.total_fights,
-          total_landed: row.total_landed.to_i,
-          total_attempted: row.total_attempted.to_i
+          fighter_id: row[0],
+          fighter_name: row[1],
+          total_fights: row[2],
+          total_landed: row[3].to_i,
+          total_attempted: row[4].to_i
         }
       end
     end
 
-    def validate_column_names!(*columns)
-      allowed_columns = %w[
-        significant_strikes
-        significant_strikes_attempted
-        total_strikes
-        total_strikes_attempted
-        head_strikes
-        head_strikes_attempted
-        body_strikes
-        body_strikes_attempted
-        leg_strikes
-        leg_strikes_attempted
-        distance_strikes
-        distance_strikes_attempted
-        clinch_strikes
-        clinch_strikes_attempted
-        ground_strikes
-        ground_strikes_attempted
-        takedowns
-        takedowns_attempted
-      ]
+    def landed_column
+      @mapping[:landed]
+    end
 
-      columns.each do |column|
-        unless allowed_columns.include?(column.to_s)
-          raise ArgumentError, "Invalid column: #{column}"
-        end
-      end
+    def attempted_column
+      @mapping[:attempted]
+    end
+
+    def connection
+      ActiveRecord::Base.connection
     end
 
     def calculate_accuracy_percentage(fighter_data)

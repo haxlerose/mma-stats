@@ -25,6 +25,7 @@ export default function TopPerformersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [minimumThreshold, setMinimumThreshold] = useState<number | null>(null);
+  const [minimumAttemptsPerMinute, setMinimumAttemptsPerMinute] = useState<number | null>(null);
   const [isFiltered, setIsFiltered] = useState(false);
 
   // Get scope and category from URL, with defaults
@@ -52,6 +53,7 @@ export default function TopPerformersPage() {
     setIsLoading(true);
     setError(null);
     setMinimumThreshold(null);
+    setMinimumAttemptsPerMinute(null);
     setIsFiltered(false);
 
     try {
@@ -66,14 +68,23 @@ export default function TopPerformersPage() {
       setTopPerformers(response.top_performers);
       
       // Set threshold info for accuracy scope
-      if (scope === 'accuracy' && response.minimum_thresholds) {
-        const thresholdKey = category as keyof typeof response.minimum_thresholds;
-        const threshold = response.minimum_thresholds[thresholdKey];
-        if (threshold !== undefined) {
-          setMinimumThreshold(threshold);
-          // If we got less than 10 results, filtering was applied
-          setIsFiltered(response.top_performers.length < 10);
+      if (scope === 'accuracy') {
+        if (response.minimum_thresholds) {
+          const thresholdKey = category as keyof typeof response.minimum_thresholds;
+          const threshold = response.minimum_thresholds[thresholdKey];
+          if (threshold !== undefined) {
+            setMinimumThreshold(threshold);
+          }
         }
+        if (response.minimum_attempts_per_minute) {
+          const thresholdKey = category as keyof typeof response.minimum_attempts_per_minute;
+          const attemptsPerMinute = response.minimum_attempts_per_minute[thresholdKey];
+          if (attemptsPerMinute !== undefined) {
+            setMinimumAttemptsPerMinute(attemptsPerMinute);
+          }
+        }
+        // If we got less than 10 results, filtering was applied
+        setIsFiltered(response.top_performers.length < 10);
       }
     } catch (err) {
       setError('Failed to load top performers. Please try again.');
@@ -215,9 +226,12 @@ export default function TopPerformersPage() {
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">Minimum Activity Requirement</p>
               <p>
-                Fighters must attempt at least {minimumThreshold.toFixed(1)} {
+                Fighters must average at least {minimumThreshold.toFixed(1)} {
                   urlCategory.replace('_accuracy', '').replace(/_/g, ' ')
-                } per minute to qualify for this ranking.
+                } attempts over a full 5-round (25 minute) fight to qualify for this ranking.
+                {minimumAttemptsPerMinute !== null && (
+                  <span className="text-gray-700"> ({minimumAttemptsPerMinute.toFixed(2)} attempts per minute)</span>
+                )}
               </p>
               {isFiltered && (
                 <p className="mt-2">

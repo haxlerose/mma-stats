@@ -315,6 +315,17 @@ export interface TopPerformersResponse {
     ground_strike_accuracy?: number;
     takedown_accuracy?: number;
   };
+  minimum_attempts_per_minute?: {
+    significant_strike_accuracy?: number;
+    total_strike_accuracy?: number;
+    head_strike_accuracy?: number;
+    body_strike_accuracy?: number;
+    leg_strike_accuracy?: number;
+    distance_strike_accuracy?: number;
+    clinch_strike_accuracy?: number;
+    ground_strike_accuracy?: number;
+    takedown_accuracy?: number;
+  };
 }
 
 export interface TopPerformersSearchParams {
