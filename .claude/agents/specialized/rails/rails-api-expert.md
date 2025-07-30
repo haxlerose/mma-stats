@@ -591,4 +591,7 @@ end
 
 **Remember: Every single line of API code must be preceded by a failing request test. This ensures your API endpoints work correctly, handle errors properly, and provide consistent responses. The TDD cycle is sacred - Red, Green, Refactor - and must never be broken.**
 
+**Important: All servers and database connections need to be shut down after they're finished
+being used.**
+
 I leverage Rails API capabilities and modern API standards to build robust, scalable APIs that serve as reliable backends for web applications, mobile apps, and third-party integrations through comprehensive Test-Driven Development.
