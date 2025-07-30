@@ -101,37 +101,87 @@ module TopPerformers
       landed_column = @mapping[:landed]
       attempted_column = @mapping[:attempted]
 
-      sql = <<~SQL.squish
-        WITH fighter_career_stats AS (
-          SELECT
-            f.id as fighter_id,
-            f.name as fighter_name,
-            COUNT(DISTINCT fs.fight_id) as total_fights,
-            SUM(fs.#{landed_column}) as total_landed,
-            SUM(fs.#{attempted_column}) as total_attempted
-          FROM fighters f
-          JOIN fight_stats fs ON f.id = fs.fighter_id
-          GROUP BY f.id, f.name
-          HAVING SUM(fs.#{attempted_column}) > 0
-        )
-        SELECT
-          fighter_id,
-          fighter_name,
-          total_fights,
-          total_landed,
-          total_attempted
-        FROM fighter_career_stats
-      SQL
+      # Validate column names to prevent SQL injection
+      validate_column_names!(landed_column, attempted_column)
 
-      results = ActiveRecord::Base.connection.execute(sql)
-      results.map do |row|
+      fighter_stats = build_fighter_stats_query(landed_column, attempted_column)
+      format_fighter_stats(fighter_stats)
+    end
+
+    def build_fighter_stats_query(landed_column, attempted_column)
+      fighters_table = Fighter.arel_table
+      fight_stats_table = FightStat.arel_table
+
+      Fighter
+        .joins(:fight_stats)
+        .group(fighters_table[:id], fighters_table[:name])
+        .select(
+          build_select_columns(
+            fighters_table,
+            fight_stats_table,
+            landed_column,
+            attempted_column
+          )
+        )
+        .having(
+          fight_stats_table[attempted_column].sum.gt(0)
+        )
+    end
+
+    def build_select_columns(
+      fighters_table, fight_stats_table,
+      landed_column, attempted_column
+    )
+      [
+        fighters_table[:id].as("fighter_id"),
+        fighters_table[:name].as("fighter_name"),
+        fight_stats_table[:fight_id]
+          .count(true).as("total_fights"),
+        fight_stats_table[landed_column]
+          .sum.as("total_landed"),
+        fight_stats_table[attempted_column]
+          .sum.as("total_attempted")
+      ]
+    end
+
+    def format_fighter_stats(fighter_stats)
+      fighter_stats.map do |row|
         {
-          fighter_id: row["fighter_id"],
-          fighter_name: row["fighter_name"],
-          total_fights: row["total_fights"],
-          total_landed: row["total_landed"].to_i,
-          total_attempted: row["total_attempted"].to_i
+          fighter_id: row.fighter_id,
+          fighter_name: row.fighter_name,
+          total_fights: row.total_fights,
+          total_landed: row.total_landed.to_i,
+          total_attempted: row.total_attempted.to_i
         }
+      end
+    end
+
+    def validate_column_names!(*columns)
+      allowed_columns = %w[
+        significant_strikes
+        significant_strikes_attempted
+        total_strikes
+        total_strikes_attempted
+        head_strikes
+        head_strikes_attempted
+        body_strikes
+        body_strikes_attempted
+        leg_strikes
+        leg_strikes_attempted
+        distance_strikes
+        distance_strikes_attempted
+        clinch_strikes
+        clinch_strikes_attempted
+        ground_strikes
+        ground_strikes_attempted
+        takedowns
+        takedowns_attempted
+      ]
+
+      columns.each do |column|
+        unless allowed_columns.include?(column.to_s)
+          raise ArgumentError, "Invalid column: #{column}"
+        end
       end
     end
 

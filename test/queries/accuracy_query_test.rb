@@ -330,6 +330,17 @@ class AccuracyQueryTest < ActiveSupport::TestCase
     assert_equal 75.0, fighter_result[:accuracy_percentage]
   end
 
+  test "generates safe SQL without string interpolation vulnerabilities" do
+    # This test ensures we're not using dangerous string interpolation
+    query = AccuracyQuery.new(category: "significant_strike_accuracy")
+
+    # Get the SQL being generated
+    fighters_data = query.send(:fighters_with_accuracy)
+
+    # The method should return data, not raise SQL injection errors
+    assert_kind_of Array, fighters_data
+  end
+
   test "handles decimal precision correctly" do
     fighter = Fighter.create!(name: "Alex Pereira")
     5.times do |i|

@@ -96,9 +96,16 @@ export default function TopPerformersPage() {
       const isCurrentlyAccuracyCategory = urlCategory.includes('_accuracy');
       const newCategory = isCurrentlyAccuracyCategory ? urlCategory : 'significant_strike_accuracy';
       updateURL({ scope, category: newCategory });
+    } else if (scope === 'results') {
+      // When switching to results scope, default to total_wins if not already on a results category
+      const isCurrentlyResultsCategory = ['total_wins', 'total_losses', 'win_percentage', 'longest_win_streak'].includes(urlCategory);
+      const newCategory = isCurrentlyResultsCategory ? urlCategory : 'total_wins';
+      updateURL({ scope, category: newCategory });
     } else {
-      // When leaving accuracy scope, switch to a non-accuracy category
-      const newCategory = urlCategory.includes('_accuracy') ? 'knockdowns' : urlCategory;
+      // When leaving accuracy or results scope, switch to a non-accuracy/non-results category
+      const isSpecialCategory = urlCategory.includes('_accuracy') || 
+        ['total_wins', 'total_losses', 'win_percentage', 'longest_win_streak'].includes(urlCategory);
+      const newCategory = isSpecialCategory ? 'knockdowns' : urlCategory;
       updateURL({ scope, category: newCategory });
     }
   };
@@ -148,6 +155,17 @@ export default function TopPerformersPage() {
               onCategoryChange={handleCategoryChange}
             />
           </div>
+        ) : urlScope === 'results' ? (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+            <div className="text-sm text-gray-600">
+              Select a results statistic to view top performers:
+            </div>
+            <CategorySelector 
+              activeCategory={urlCategory} 
+              onCategoryChange={handleCategoryChange}
+              scope={urlScope}
+            />
+          </div>
         ) : (
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
             <div className="text-sm text-gray-600">
@@ -174,6 +192,7 @@ export default function TopPerformersPage() {
             {urlScope === 'round' && 'Best single round performance'}
             {urlScope === 'per_minute' && 'Average per 15 minutes of fight time'}
             {urlScope === 'accuracy' && `Highest ${formatCategoryName(urlCategory).toLowerCase()} percentage`}
+            {urlScope === 'results' && 'Career win/loss records and streaks'}
           </p>
         </div>
       )}

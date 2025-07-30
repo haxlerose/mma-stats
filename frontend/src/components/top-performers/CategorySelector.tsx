@@ -67,6 +67,18 @@ const categoryGroups: CategoryGroup[] = [
   },
 ];
 
+const resultsCategories: CategoryGroup[] = [
+  {
+    label: 'Win/Loss Records',
+    categories: [
+      { value: 'total_wins', label: 'Total Wins' },
+      { value: 'total_losses', label: 'Total Losses' },
+      { value: 'win_percentage', label: 'Win Percentage' },
+      { value: 'longest_win_streak', label: 'Longest Win Streak' },
+    ],
+  },
+];
+
 export function CategorySelector({ activeCategory, onCategoryChange, scope }: CategorySelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -88,8 +100,11 @@ export function CategorySelector({ activeCategory, onCategoryChange, scope }: Ca
     return null;
   }
 
+  // Use appropriate category groups based on scope
+  const activeGroups = scope === 'results' ? resultsCategories : categoryGroups;
+
   // Find active category label
-  const activeCategoryLabel = categoryGroups
+  const activeCategoryLabel = activeGroups
     .flatMap(group => group.categories)
     .find(cat => cat.value === activeCategory)?.label || activeCategory;
 
@@ -134,7 +149,7 @@ export function CategorySelector({ activeCategory, onCategoryChange, scope }: Ca
           role="listbox"
         >
           <div className="max-h-96 overflow-auto py-1">
-            {categoryGroups.map((group) => (
+            {activeGroups.map((group) => (
               <div key={group.label}>
                 <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   {group.label}

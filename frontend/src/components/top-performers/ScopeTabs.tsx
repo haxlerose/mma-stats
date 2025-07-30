@@ -40,6 +40,11 @@ const scopeTabs: ScopeTab[] = [
     label: 'Accuracy',
     description: 'Strike accuracy percentage',
   },
+  {
+    value: 'results',
+    label: 'Results',
+    description: 'Win/loss records and streaks',
+  },
 ];
 
 export function ScopeTabs({ activeScope, onScopeChange }: ScopeTabsProps) {

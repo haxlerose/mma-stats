@@ -27,27 +27,69 @@ module TopPerformers
 
     def calculate_average_attempt_rate_per_second
       attempted_column = @mapping[:attempted]
+      validate_column_name!(attempted_column)
 
-      sql = <<~SQL.squish
-        WITH fight_attempts AS (
-          SELECT
-            fs.fight_id,
-            SUM(fs.#{attempted_column}) as total_attempts,
-            fd.duration_seconds
-          FROM fight_stats fs
-          JOIN fight_durations fd ON fs.fight_id = fd.fight_id
-          GROUP BY fs.fight_id, fd.duration_seconds
-          HAVING SUM(fs.#{attempted_column}) > 0
+      fight_stats_aggregated = aggregate_fight_stats(attempted_column)
+      return 0.0 if fight_stats_aggregated.empty?
+
+      fight_durations = fetch_fight_durations(fight_stats_aggregated.keys)
+      totals = calculate_totals(fight_stats_aggregated, fight_durations)
+
+      return 0.0 if totals[:duration].zero?
+
+      totals[:attempts].to_f / totals[:duration]
+    end
+
+    def aggregate_fight_stats(attempted_column)
+      fight_stats_table = FightStat.arel_table
+      FightStat
+        .group(:fight_id)
+        .where(fight_stats_table[attempted_column].gt(0))
+        .sum(attempted_column)
+    end
+
+    def fetch_fight_durations(fight_ids)
+      ActiveRecord::Base.connection.select_all(
+        ActiveRecord::Base.sanitize_sql_array(
+          [
+            "SELECT fight_id, duration_seconds " \
+            "FROM fight_durations WHERE fight_id IN (?)",
+            fight_ids
+          ]
         )
-        SELECT
-          SUM(total_attempts)::float / SUM(duration_seconds) as attempt_rate
-        FROM fight_attempts
-      SQL
+      )
+    end
 
-      result = ActiveRecord::Base.connection.execute(sql).first
-      return 0.0 unless result && result["attempt_rate"]
+    def calculate_totals(fight_stats_aggregated, fight_durations)
+      totals = { attempts: 0, duration: 0 }
 
-      result["attempt_rate"].to_f
+      fight_durations.each do |duration_record|
+        fight_id = duration_record["fight_id"]
+        if fight_stats_aggregated[fight_id]
+          totals[:attempts] += fight_stats_aggregated[fight_id]
+          totals[:duration] += duration_record["duration_seconds"]
+        end
+      end
+
+      totals
+    end
+
+    def validate_column_name!(column)
+      allowed_columns = %w[
+        significant_strikes_attempted
+        total_strikes_attempted
+        head_strikes_attempted
+        body_strikes_attempted
+        leg_strikes_attempted
+        distance_strikes_attempted
+        clinch_strikes_attempted
+        ground_strikes_attempted
+        takedowns_attempted
+      ]
+
+      unless allowed_columns.include?(column.to_s)
+        raise ArgumentError, "Invalid column: #{column}"
+      end
     end
   end
 end

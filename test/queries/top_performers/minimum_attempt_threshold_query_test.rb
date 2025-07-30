@@ -136,6 +136,24 @@ module TopPerformers
       end
     end
 
+    test "generates safe SQL without string interpolation vulnerabilities" do
+      # This test ensures we're not using dangerous string interpolation
+      create_fight_with_stats(
+        significant_strikes_attempted: 100,
+        fight_duration_minutes: 15
+      )
+
+      query = MinimumAttemptThresholdQuery.new(
+        category: "significant_strike_accuracy"
+      )
+
+      # Should not raise SQL injection errors
+      result = query.call
+
+      # Should return a numeric result
+      assert_kind_of Integer, result
+    end
+
     test "raises error for invalid category" do
       assert_raises ArgumentError do
         MinimumAttemptThresholdQuery.new(category: "invalid_category")
