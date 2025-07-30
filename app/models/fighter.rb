@@ -51,7 +51,11 @@ class Fighter < ApplicationRecord
     # Use Rails cache to store results since win streaks change infrequently
     cache_key = "fighter_top_win_streaks_#{limit}_#{cache_timestamp}"
 
-    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+    if Rails.cache
+      Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+        calculate_top_win_streaks(limit)
+      end
+    else
       calculate_top_win_streaks(limit)
     end
   end
@@ -364,7 +368,11 @@ class Fighter < ApplicationRecord
   def self.statistical_highlights
     cache_key = "statistical_highlights_#{cache_timestamp}"
 
-    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+    if Rails.cache
+      Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+        calculate_statistical_highlights
+      end
+    else
       calculate_statistical_highlights
     end
   end

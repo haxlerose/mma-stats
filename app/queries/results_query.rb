@@ -147,7 +147,11 @@ class ResultsQuery
   def top_win_streaks
     cache_key = "fighter_top_win_streaks_all"
 
-    Rails.cache.fetch(cache_key, expires_in: 24.hours) do
+    if Rails.cache
+      Rails.cache.fetch(cache_key, expires_in: 24.hours) do
+        calculate_top_win_streaks
+      end
+    else
       calculate_top_win_streaks
     end
   end

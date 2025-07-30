@@ -38,11 +38,18 @@ class Api::V1::TopPerformersController < ApplicationController
 
   def fetch_top_performers
     cache_key = build_cache_key
-    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
-      query_class = SCOPE_TO_QUERY_CLASS[params[:scope]]
-      query = create_query(query_class, params[:category])
-      query.call
+
+    if Rails.cache
+      Rails.cache.fetch(cache_key, expires_in: 1.hour) { execute_query }
+    else
+      execute_query
     end
+  end
+
+  def execute_query
+    query_class = SCOPE_TO_QUERY_CLASS[params[:scope]]
+    query = create_query(query_class, params[:category])
+    query.call
   end
 
   def build_cache_key
